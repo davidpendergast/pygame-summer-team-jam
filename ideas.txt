@@ -1,0 +1,33 @@
+### Tank King:
+
+Idea 1: (Platformer / Point and Click)
+
+style - platformer
+idea - 
+the player has a special power to interact with certain elements in a level
+now the element can be good for the player or bad for the player
+but he has to interact with them and find out the right element for progressing of the game
+the right element might be a box that gives a key to a door, or a boulder that starts falling due to interaction which leads to a passage being revealed, etc.
+the wrong elements can be the same ones, but leading to potentially dangerous routes, like the boulder this time happens to fall on the player, or the key is to another route full of spikes, or the usual platformer dangers.
+but the good thing abt this is that every danger route will have a possibility of a comeback to the right path. thus the player will have a bit of chance factor when deciding which stuff to interact with, but if things go wrong he cant entirely blame his 'fate' for losing because he will have a chance to set things right each time.
+This might replicate the way of our life, we might be tempted to do a lot of things, and sometimes we fall trap to a lot of things, but we should recover our paths as quickly as possible, and continue on our path, only this game is slightly different from that point, but yea overall they can be related i suppose.
+
+Idea 2: (Gravity / Magnetism)
+
+the second idea i had might be also quite heavy on the programming side but maybe the usage of a physics library like pymunk can make the programming side a bit easier.
+the other idea is abt a game based on magnetism
+there r various magnets placed in the level, and all objects r floating in space. now we have the ability to turn on/off each magnets individually, which will help in move the player/different objects. [the player has the ability to enable or disable magnetic effect on the main character]
+this can lead to interesting physics-based puzzles, like a situation where we turn on right magnet to bring all sharp objects to right and then shift them upwards using another magnet, in such a way they end up not hitting the player, and the player can safely manage to get to the exit of the level. but i think this might be too much for a week jam too. This idea is like an extended version of the gravity inversion puzzles in the game, LIMBO. 
+
+
+### Ghast: 
+
+Idea 1: Scorpion with a Laser Gun Tail
+
+Summary: It's a platformer where you play as a scorpion, who can jump and climb walls and stuff. The level is filled with targets (balloons, probably), which can only be popped using the scorpion's tail, which is a laser gun. The laser gun always aims in the direction that will pop the most balloons, and the player controls when it fires. You get a limited number of shots per level, and you must pop every balloon to win.
+
+Challenge: Player must decide where to take shots from, and use platforming techniques to pull off the shot such that they hit every balloon without running out of shots.
+
+Additional Mechanics: Targets that move, targets that require multiple shots to break, walls that can / can't be climbed by the scorpion, blocks that can be destroyed or moved by the laser, gravity-changing buttons(?), blocks that reflect the laser (?), fake targets that draw the attention of the tail but can't actually be broken(?)
+
+

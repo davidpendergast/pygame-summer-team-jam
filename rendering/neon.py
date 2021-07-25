@@ -42,10 +42,16 @@ class NeonLine:
 class NeonRenderer:
 
     def __init__(self,
-                 neon_bloom: float = (25, 25),
-                 post_processing_bloom: float = (3, 3)):
-        self._neon_bloom = neon_bloom
-        self._post_processing_bloom = post_processing_bloom
+                 ambient_bloom_kernel=(25, 25),
+                 mid_tone_bloom_kernel=(3, 3),
+                 highlight_bloom_kernel=None):
+        self.ambient_bloom_kernel = ambient_bloom_kernel
+        self.mid_tone_bloom_kernel = mid_tone_bloom_kernel
+        self.highlight_bloom_kernel = highlight_bloom_kernel
+
+        # post processing
+        self.post_processing_darken_factor = 0.9
+        self.post_processing_contrast_factor = None  # makes things worse, so disabled
 
     def draw_lines(self, surface: pygame.Surface, lines: Iterable[NeonLine]):
         array = pygame.surfarray.array3d(surface)
@@ -54,25 +60,53 @@ class NeonRenderer:
 
         # 1st pass, draw large, dark, faint glow around line
         for line in lines:
-            cv2.polylines(array, [line.np_points], False, line.color.lerp((0, 0, 0), 0.25), line.width)
-        array = cv2.blur(array, self._neon_bloom)
+            cv2.polylines(array, [line.np_points], False, line.color.lerp((0, 0, 0), 0.15), line.width)
+        if self.ambient_bloom_kernel is not None:
+            array = cv2.blur(array, self.ambient_bloom_kernel)
 
         # 2nd pass, draw smaller, brighter glow
         for line in lines:
-            cv2.polylines(array, [line.np_points], False, line.inner_color, line.inner_width, lineType=cv2.LINE_AA)
-        array = cv2.blur(array, self._post_processing_bloom)
+            cv2.polylines(array, [line.np_points], False, line.color, line.inner_width, lineType=cv2.LINE_AA)
+        if self.mid_tone_bloom_kernel is not None:
+            array = cv2.blur(array, self.mid_tone_bloom_kernel)
 
-        # 3rd pass, draw anti-aliased highlight, don't blur
+        # 3rd pass, draw anti-aliased highlight
         for line in lines:
-            cv2.polylines(array, [line.np_points], False, line.inner_color.lerp((255, 255, 255), 0.75), line.inner_width, lineType=cv2.LINE_AA)
+            cv2.polylines(array, [line.np_points], False, line.inner_color.lerp((255, 255, 255), 0.7), line.inner_width, lineType=cv2.LINE_AA)
+        if self.highlight_bloom_kernel is not None:
+            array = cv2.blur(array, self.highlight_bloom_kernel)
+
+        # post processing effects
+        if self.post_processing_darken_factor is not None:
+            array = self._darken(array, self.post_processing_darken_factor)
+        if self.post_processing_contrast_factor is not None:
+            array = self._contrast(array, self.post_processing_contrast_factor)
 
         pygame.surfarray.blit_array(surface, array)
+
+    def _darken(self, array, factor):
+        hsvImg = cv2.cvtColor(array, cv2.COLOR_BGR2HSV)
+        hsvImg[..., 2] = hsvImg[..., 2] * factor
+        return cv2.cvtColor(hsvImg, cv2.COLOR_HSV2RGB)
+
+    def _contrast(self, array, factor):
+        # yoinked from https://stackoverflow.com/a/41075028
+        lab = cv2.cvtColor(array, cv2.COLOR_BGR2LAB)
+        l, a, b = cv2.split(lab)
+        clahe = cv2.createCLAHE(clipLimit=4.0, tileGridSize=(18, 18))
+        cl = clahe.apply(l)
+
+        # -----Merge the CLAHE enhanced L-channel with the a and b channel-----------
+        limg = cv2.merge((cl, a, b))
+
+        # -----Converting image from LAB Color model to RGB model--------------------
+        return cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
 
 
 if __name__ == "__main__":
     import random
 
-    W, H = SIZE = (300, 200)
+    W, H = SIZE = (600, 400)
     N = 50
 
     def rand_pt():
@@ -85,10 +119,16 @@ if __name__ == "__main__":
             random.randint(1, 1),
             random.choice(ALL_COLORS)))
 
-    renderer = NeonRenderer()
+    # values determined empirically
+    big_bloom = round(25 * W / 300)
+    big_bloom = big_bloom + (1 - big_bloom % 2)  # gotta be odd
+    mid_bloom = round(3 * W / 300)
+    mid_bloom = mid_bloom + (1 - mid_bloom % 2)  # gotta be odd
+    renderer = NeonRenderer(ambient_bloom_kernel=(big_bloom, big_bloom),
+                            mid_tone_bloom_kernel=(mid_bloom, mid_bloom))
 
     pygame.init()
-    pygame.display.set_mode((300, 200), pygame.SCALED | pygame.RESIZABLE)
+    pygame.display.set_mode((W, H), pygame.SCALED | pygame.RESIZABLE)
 
     clock = pygame.time.Clock()
     t = 0
@@ -99,6 +139,7 @@ if __name__ == "__main__":
 
         screen = pygame.display.get_surface()
         screen.fill((0, 0, 0))
+
         renderer.draw_lines(screen, lines)
 
         pygame.display.flip()

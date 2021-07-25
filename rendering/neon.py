@@ -85,7 +85,7 @@ class NeonRenderer:
         pygame.surfarray.blit_array(surface, array)
 
     def _darken(self, array, factor):
-        hsvImg = cv2.cvtColor(array, cv2.COLOR_BGR2HSV)
+        hsvImg = cv2.cvtColor(array, cv2.COLOR_RGB2HSV)
         hsvImg[..., 2] = hsvImg[..., 2] * factor
         return cv2.cvtColor(hsvImg, cv2.COLOR_HSV2RGB)
 

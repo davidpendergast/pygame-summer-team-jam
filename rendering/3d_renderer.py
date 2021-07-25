@@ -75,8 +75,6 @@ def preview_code():
     p = player.Player(screen)
     r = renderer.Renderer()
 
-    neon_renderer = neon.NeonRenderer()
-
     while True:
         events = pygame.event.get()
         for e in events:

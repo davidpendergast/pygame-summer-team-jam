@@ -10,8 +10,6 @@ class Renderer:
         self.level = {
             'shape': 6,
         }
-        self.zoom1 = 1
-        self.zoom2 = 1
         self.angle = 0
         self.angle_k = 5
         self.renderer = neon.NeonRenderer()
@@ -36,16 +34,13 @@ class Renderer:
                     self.go_right()
 
     def render_level(self, display: pygame.Surface):
-        side_length = 50 * self.zoom2 if self.zoom1 > 3 else 50
+        side_length = 50
         n = self.level['shape']
         offset_x = 300
         offset_y = 300 + n * 15
         offset_angle = math.radians((n - 2) * 90 / n + self.angle)
         if self.angle % ((n - 2) * 90 // n) != 0:
             self.angle += self.angle_k
-        if self.zoom1 > 3:
-            self.zoom2 += 0.1
-
         color = pygame.Color(255, 0, 0)
         points1 = [pygame.Vector2(offset_x + side_length * math.cos(offset_angle + 2 * math.pi * i / n), offset_y + side_length * math.sin(offset_angle + 2 * math.pi * i / n)) for i in range(n)]
         side_length = 250

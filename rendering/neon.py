@@ -1,6 +1,7 @@
-from typing import Sequence, Iterable
+from typing import List, Iterable, Tuple
 import pygame
 import cv2
+import numpy
 
 
 # taken from https://www.coolneon.com/wp-content/uploads/2014/11/color-chart.png
@@ -23,38 +24,56 @@ class NeonLine:
     Represents a line NeonRenderer can draw.
     """
     def __init__(self,
-                 points: Sequence[pygame.Vector2],
+                 points: List[pygame.Vector2],
                  width: int,
                  color: pygame.Color,
-                 inner_color: pygame.Color = WHITE):
-        self.points = points
+                 inner_color: pygame.Color = None,
+                 inner_width: int = None):
+
+        self.vector_points = points
+        # x and y are flipped intentionally... this is what cv2 understands, don't ask me~
+        self.np_points = numpy.array([[round(p.y), round(p.x)] for p in points], numpy.int32).reshape((-1, 1, 2))
         self.width = width
-        self.inner_color = inner_color
+        self.inner_width = inner_width or 1
+        self.inner_color = inner_color or color.lerp(WHITE, 0.5)
         self.color = color
 
 
 class NeonRenderer:
 
-    def __init__(self, neon_bloom: float = 3.0, post_processing_bloom: float = 1):
-        """
-        :param blur: The width of the blurring kernel in pixels.
-        """
+    def __init__(self,
+                 neon_bloom: float = (25, 25),
+                 post_processing_bloom: float = (3, 3)):
         self._neon_bloom = neon_bloom
         self._post_processing_bloom = post_processing_bloom
 
-    def draw(self, surface: pygame.Surface, lines: Iterable[NeonLine]):
-        for line in lines:
-            pygame.draw.lines(surface, line.color, False, line.points, width=line.width)
+    def draw_lines(self, surface: pygame.Surface, lines: Iterable[NeonLine]):
+        array = pygame.surfarray.array3d(surface)
 
-    def _apply_bloom(self, surface: pygame.Surface, bloom):
-        pass
+        # Ghast's Neon Line Drawing AlgorithmTM
+
+        # 1st pass, draw large, dark, faint glow around line
+        for line in lines:
+            cv2.polylines(array, [line.np_points], False, line.color.lerp((0, 0, 0), 0.25), line.width)
+        array = cv2.blur(array, self._neon_bloom)
+
+        # 2nd pass, draw smaller, brighter glow
+        for line in lines:
+            cv2.polylines(array, [line.np_points], False, line.inner_color, line.inner_width, lineType=cv2.LINE_AA)
+        array = cv2.blur(array, self._post_processing_bloom)
+
+        # 3rd pass, draw anti-aliased highlight, don't blur
+        for line in lines:
+            cv2.polylines(array, [line.np_points], False, line.inner_color.lerp((255, 255, 255), 0.75), line.inner_width, lineType=cv2.LINE_AA)
+
+        pygame.surfarray.blit_array(surface, array)
 
 
 if __name__ == "__main__":
     import random
 
     W, H = SIZE = (300, 200)
-    N = 5
+    N = 50
 
     def rand_pt():
         return pygame.Vector2(random.randint(0, W), random.randint(0, H))
@@ -63,7 +82,7 @@ if __name__ == "__main__":
     for _ in range(N):
         lines.append(NeonLine(
             [rand_pt(), rand_pt()],
-            random.randint(1, 4),
+            random.randint(1, 1),
             random.choice(ALL_COLORS)))
 
     renderer = NeonRenderer()
@@ -80,7 +99,7 @@ if __name__ == "__main__":
 
         screen = pygame.display.get_surface()
         screen.fill((0, 0, 0))
-        renderer.draw(screen, lines)
+        renderer.draw_lines(screen, lines)
 
         pygame.display.flip()
         t += 1

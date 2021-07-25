@@ -14,7 +14,7 @@ ORANGE = pygame.Color(255, 70, 0)
 RED = pygame.Color(231, 0, 0)
 PURPLE = pygame.Color(154, 0, 154)
 PINK = pygame.Color(253, 17, 96)
-WHITE = pygame.Color(200, 200, 255)
+WHITE = pygame.Color(220, 220, 255)
 
 ALL_COLORS = [CYAN, BLUE, TEAL, LIME, YELLOW, ORANGE, RED, PURPLE, PINK, WHITE]
 

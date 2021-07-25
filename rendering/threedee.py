@@ -6,10 +6,12 @@ import pygame
 from pygame import Vector3, Vector2
 import math
 
+import rendering.neon as neon
+
 
 class Line3D:
 
-    def __init__(self, p1: Vector3, p2: Vector3, color=(255, 255, 255), width=1):
+    def __init__(self, p1: Vector3, p2: Vector3, color=neon.WHITE, width=1):
         self.p1 = p1
         self.p2 = p2
         self.color = color
@@ -18,7 +20,7 @@ class Line3D:
 
 class Line2D:
 
-    def __init__(self, p1: Vector2, p2: Vector2, color=(255, 255, 255), width=1):
+    def __init__(self, p1: Vector2, p2: Vector2, color=neon.WHITE, width=1):
         self.p1 = p1
         self.p2 = p2
         self.color = color
@@ -109,7 +111,7 @@ class Camera3D:
         return res
 
 
-def gen_cube(angle, size, center):
+def gen_cube(angle, size, center, color):
     res = []
     pts = []
     for x in (-1, 1):
@@ -122,7 +124,7 @@ def gen_cube(angle, size, center):
                 pt = pts[-1]
                 for n in pts[:len(pts)-1]:
                     if abs((pt - n).length() - size) <= 0.1:
-                        res.append(Line3D(pt, n))
+                        res.append(Line3D(pt, n, color=color))
     return res
 
 
@@ -134,25 +136,29 @@ if __name__ == "__main__":
 
     screen = pygame.display.set_mode((600, 300), pygame.RESIZABLE)
 
+    neon_renderer = neon.NeonRenderer()
+    use_neon = True
+
     clock = pygame.time.Clock()
 
     camera = Camera3D()
-    camera.position = Vector3(0, 0, -50)
-    p1 = Vector3(10, 15, 30)
-    p2 = Vector3(10, -20, 30)
-    p3 = Vector3(-20, 15, 30)
-    p4 = Vector3(-20, 15, 50)
-
-    lines = [
-        Line3D(p1, p2, color=(255, 125, 125)),
-        Line3D(p2, p3, color=(125, 255, 0)),
-        Line3D(p3, p4, color=(125, 125, 255)),
-        Line3D(Vector3(-300, -300, 30), Vector3(300, 300, 30), color=(255, 255, 255)),
-        Line3D(Vector3(300, -300, 30), Vector3(-300, 300, 30), color=(255, 100, 100)),
-    ]
+    camera.position = Vector3(0, 10, -50)
 
     angle = 0
     lines = []
+
+    import random
+
+    cubes = []
+    for _ in range(0, 10):
+        angle = random.random() * 360
+        speed = 0  # random.random() * 3
+        size = 10 + random.random() * 30
+        x = -100 + random.random() * 200
+        z = 100 + random.random() * 40
+        y = size / 2
+        color = random.choice(neon.ALL_COLORS)
+        cubes.append([angle, speed, size, Vector3(x, y, z), color])
 
     while True:
         events = pygame.event.get()
@@ -164,6 +170,8 @@ if __name__ == "__main__":
                     sys.exit(0)
                 elif e.key == pygame.K_i:
                     print("camera = " + str(camera))
+                elif e.key == pygame.K_n:
+                    use_neon = not use_neon
 
         keys_held = pygame.key.get_pressed()
         if keys_held[pygame.K_LEFT] or keys_held[pygame.K_RIGHT]:
@@ -177,7 +185,7 @@ if __name__ == "__main__":
             camera.direction.y += 0.01 * (1 if keys_held[pygame.K_UP] else -1)
             camera.direction.scale_to_length(1)
 
-        ms = 0.25
+        ms = 1
         xz = Vector2(camera.position.x, camera.position.z)
         view_xz = Vector2(camera.direction.x, camera.direction.z)
         view_xz.scale_to_length(1)
@@ -195,12 +203,20 @@ if __name__ == "__main__":
 
         screen.fill((0, 0, 0))
 
-        angle += 1
-        lines = gen_cube(angle, 10, Vector3(0, 0, 20))
+        lines = []
+        for c in cubes:
+            c[0] += c[1]  # rotate
+            lines.extend(gen_cube(c[0], c[2], c[3], c[4]))
 
         lines_2d = camera.project_to_surface(screen, lines)
-        for l in lines_2d:
-            pygame.draw.line(screen, l.color, l.p1, l.p2, l.width)
+        if not use_neon:
+            for l in lines_2d:
+                pygame.draw.line(screen, l.color, l.p1, l.p2, l.width)
+        else:
+            neon_lines = []
+            for l in lines_2d:
+                neon_lines.append(neon.NeonLine([l.p1, l.p2], l.width, l.color))
+            neon_renderer.draw_lines(screen, neon_lines)
 
         pygame.display.update()
         pygame.display.set_caption(str(int(clock.get_fps())))

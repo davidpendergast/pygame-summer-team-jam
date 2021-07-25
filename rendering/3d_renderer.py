@@ -58,3 +58,37 @@ class Renderer:
         for i in range(n):
             p3.append(neon.NeonLine([pygame.Vector2(points1[i][0], points1[i][1]), pygame.Vector2(points2[i][0], points2[i][1])], 3, color))
         self.renderer.draw_lines(display, p1 + p2 + p3)
+
+        
+   def preview_code():
+        # call it to see demo
+        import sys
+        import player
+        import renderer
+
+        pygame.init()
+
+        screen = pygame.display.set_mode((600, 600))
+
+        clock = pygame.time.Clock()
+
+        p = player.Player(screen)
+        r = renderer.Renderer()
+
+        neon_renderer = neon.NeonRenderer()
+
+        while True:
+            events = pygame.event.get()
+            for e in events:
+                if e.type == pygame.QUIT:
+                    sys.exit(0)
+                if e.type == pygame.KEYDOWN:
+                    if e.key == pygame.K_ESCAPE:
+                        sys.exit(0)
+            screen.fill((0, 0, 0))
+            p.update(events)
+            r.update(events)
+            r.render_level(screen)
+            pygame.display.update()
+            pygame.display.set_caption(str(int(clock.get_fps())))
+            clock.tick(0)

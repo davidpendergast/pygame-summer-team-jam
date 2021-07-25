@@ -64,7 +64,6 @@ def preview_code():
     # call it to see demo
     import sys
     import player
-    import renderer
 
     pygame.init()
 
@@ -73,7 +72,7 @@ def preview_code():
     clock = pygame.time.Clock()
 
     p = player.Player(screen)
-    r = renderer.Renderer()
+    r = Renderer()
 
     while True:
         events = pygame.event.get()

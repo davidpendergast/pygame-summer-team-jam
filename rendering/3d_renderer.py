@@ -63,7 +63,6 @@ class Renderer:
 def preview_code():
     # call it to see demo
     import sys
-    import player
 
     pygame.init()
 
@@ -71,7 +70,6 @@ def preview_code():
 
     clock = pygame.time.Clock()
 
-    p = player.Player(screen)
     r = Renderer()
 
     while True:
@@ -83,7 +81,6 @@ def preview_code():
                 if e.key == pygame.K_ESCAPE:
                     sys.exit(0)
         screen.fill((0, 0, 0))
-        p.update(events)
         r.update(events)
         r.render_level(screen)
         pygame.display.update()

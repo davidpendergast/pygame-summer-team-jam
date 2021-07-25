@@ -18,6 +18,9 @@ class GameLoop:
         self.current_mode: GameMode = MainMenuMode(self)
         self.next_mode = None
 
+    def set_next_mode(self, next_mode):
+        self.next_mode = next_mode
+
     def start(self):
         last_tick_time_secs = time.time()
 
@@ -87,12 +90,12 @@ class MainMenuMode(GameMode):
         self.option_font = pygame.font.Font(pygame.font.get_default_font(), 24)
 
     def on_mode_start(self):
-        # TODO play menu song
+        # TODO song
         pass
 
     def start_pressed(self):
-        # TODO switch to gameplay mode
-        pass
+        import gameplay.gamestuff  # shh don't tell pylint about this
+        self.loop.set_next_mode(gameplay.gamestuff.GameplayMode(self.loop))
 
     def help_pressed(self):
         # TODO add help menu
@@ -103,7 +106,6 @@ class MainMenuMode(GameMode):
         pass
 
     def exit_pressed(self):
-        print("pressed exit")
         self.loop.running = False
 
     def update(self, dt, events):

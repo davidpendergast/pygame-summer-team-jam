@@ -39,6 +39,12 @@ class NeonLine:
         self.inner_color = inner_color or color.lerp(WHITE, 0.5)
         self.color = color
 
+    @staticmethod
+    def convert_line2ds_to_neon_lines(line2ds) -> List['NeonLine']:
+        # why are there two nearly identical line classes, you ask? i f-d up
+        # anyways this method converts a list of Line2Ds into NeonLines~
+        return [NeonLine([l.p1, l.p2], l.width, l.color) for l in line2ds]
+
 
 class NeonRenderer:
 

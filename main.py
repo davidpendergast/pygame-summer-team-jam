@@ -98,8 +98,8 @@ class MainMenuMode(GameMode):
         self.loop.set_next_mode(gameplay.gamestuff.GameplayMode(self.loop))
 
     def help_pressed(self):
-        # TODO add help menu
-        pass
+        import gameplay.mockgamestuff
+        self.loop.set_next_mode(gameplay.mockgamestuff.MockGameplayMode(self.loop))
 
     def credits_pressed(self):
         # TODO add credits menu

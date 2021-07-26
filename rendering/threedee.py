@@ -17,6 +17,9 @@ class Line3D:
         self.color = color
         self.width = width
 
+    def __repr__(self):
+        return "{}(p1={}, p2={}, color={}, width={})".format(type(self).__name__, self.p1, self.p2, self.color, self.width)
+
 
 class Line2D:
 
@@ -25,6 +28,9 @@ class Line2D:
         self.p2 = p2
         self.color = color
         self.width = width
+
+    def __repr__(self):
+        return "{}(p1={}, p2={}, color={}, width={})".format(type(self).__name__, self.p1, self.p2, self.color, self.width)
 
 
 # base code~
@@ -81,33 +87,36 @@ class Camera3D:
     def __repr__(self):
         return "{}(pos={}, dir={})".format(type(self).__name__, self.position, self.direction)
 
-    def xform_pt(self, surface_size, pt: Vector3) -> Vector2:
+    def get_xform(self, surface_size):
         view_mat = get_matrix_looking_at(self.position, self.position + self.direction, self.up)
         proj_mat = perspective_matrix(self.fov_degrees / 180 * math.pi, surface_size[0] / surface_size[1], 0.5, 100000)
-        world_v = numpy.array([pt[0], pt[1], pt[2], 1], dtype=numpy.float32)
-        screen_v = proj_mat @ view_mat @ world_v
+        return proj_mat @ view_mat
 
-        if screen_v[3] == 0:
-            # not sure what this means, but it's not good
-            return None
-        x = screen_v[0] / screen_v[3]
-        y = screen_v[1] / screen_v[3]
-        z = screen_v[2] / screen_v[3]
-        if z < 0:
-            # means point is "behind" the camera
-            return None
-        else:
-            return Vector2(surface_size[0] // 2 + surface_size[0] * x,
-                           surface_size[1] // 2 + surface_size[1] * y)
-
-    def project_to_surface(self, surface, lines: Iterable[Line3D]) -> List[Line2D]:
+    def project_to_surface(self, surface, lines: List[Line3D]) -> List[Line2D]:
         res = []
-        dims = surface.get_size()
-        for l in lines:
-            p1_2d = self.xform_pt(dims, l.p1)
-            p2_2d = self.xform_pt(dims, l.p2)
-            if p1_2d is not None and p2_2d is not None:
-                res.append(Line2D(p1_2d, p2_2d, color=l.color, width=l.width))
+        screen_dims = surface.get_size()
+        camera_xform = self.get_xform(screen_dims)
+        point_list = numpy.ndarray((len(lines) * 2, 4), dtype=numpy.float32)
+        for i in range(len(lines) * 2):
+            pt = lines[i // 2].p1 if i % 2 == 0 else lines[i // 2].p2
+            point_list[i] = (pt[0], pt[1], pt[2], 1)
+
+        point_list = point_list.transpose()
+        point_list = camera_xform.dot(point_list)
+        point_list = point_list.transpose()
+
+        for i in range(len(lines)):
+            w1 = point_list[i * 2][3]
+            w2 = point_list[i * 2 + 1][3]
+            if w1 > 0.001 and w2 > 0.001:
+                x1 = screen_dims[0] * (0.5 + point_list[i * 2][0] / w1)
+                y1 = screen_dims[1] * (0.5 + point_list[i * 2][1] / w1)
+                x2 = screen_dims[0] * (0.5 + point_list[i * 2 + 1][0] / w2)
+                y2 = screen_dims[1] * (0.5 + point_list[i * 2 + 1][1] / w2)
+                line = Line2D(Vector2(x1, y1), Vector2(x2, y2), color=lines[i].color, width=lines[i].width)
+                # print("line = {} (w1 = {}, w2 = {})".format(line, w1, w2))
+                res.append(line)
+
         return res
 
 
@@ -135,8 +144,12 @@ if __name__ == "__main__":
     pygame.init()
 
     screen = pygame.display.set_mode((600, 300), pygame.RESIZABLE)
+    screen.convert()
 
-    neon_renderer = neon.NeonRenderer()
+    neon_renderer = neon.NeonRenderer(ambient_bloom_kernel=(5, 5),
+                                      mid_tone_bloom_kernel=(3, 3),
+                                      highlight_bloom_kernel=None)
+    neon_renderer.post_processing_darken_factor = 0.8
     use_neon = True
 
     clock = pygame.time.Clock()
@@ -148,11 +161,12 @@ if __name__ == "__main__":
     lines = []
 
     import random
+    import util.profiling as profiling
 
     cubes = []
     for _ in range(0, 10):
         angle = random.random() * 360
-        speed = 0  # random.random() * 3
+        speed = random.random() * 1
         size = 10 + random.random() * 30
         x = -100 + random.random() * 200
         z = 100 + random.random() * 40
@@ -172,6 +186,9 @@ if __name__ == "__main__":
                     print("camera = " + str(camera))
                 elif e.key == pygame.K_n:
                     use_neon = not use_neon
+                    neon_renderer.set_enabled(use_neon)
+                elif e.key == pygame.K_p:
+                    profiling.get_instance().toggle()
 
         keys_held = pygame.key.get_pressed()
         if keys_held[pygame.K_LEFT] or keys_held[pygame.K_RIGHT]:
@@ -205,18 +222,16 @@ if __name__ == "__main__":
 
         lines = []
         for c in cubes:
-            c[0] += c[1]  # rotate
-            lines.extend(gen_cube(c[0], c[2], c[3], c[4]))
+           c[0] += c[1]  # rotate
+           lines.extend(gen_cube(c[0], c[2], c[3], c[4]))
+
+        # lines = [Line3D(Vector3(0, 10, 0), Vector3(1, 10, 0))]
 
         lines_2d = camera.project_to_surface(screen, lines)
-        if not use_neon:
-            for l in lines_2d:
-                pygame.draw.line(screen, l.color, l.p1, l.p2, l.width)
-        else:
-            neon_lines = []
-            for l in lines_2d:
-                neon_lines.append(neon.NeonLine([l.p1, l.p2], l.width, l.color))
-            neon_renderer.draw_lines(screen, neon_lines)
+        neon_lines = []
+        for l in lines_2d:
+            neon_lines.append(neon.NeonLine([l.p1, l.p2], l.width, l.color))
+        neon_renderer.draw_lines(screen, neon_lines)
 
         pygame.display.update()
         pygame.display.set_caption(str(int(clock.get_fps())))

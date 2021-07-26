@@ -15,6 +15,7 @@ RED = pygame.Color(231, 0, 0)
 PURPLE = pygame.Color(154, 0, 154)
 PINK = pygame.Color(253, 17, 96)
 WHITE = pygame.Color(220, 220, 255)
+BLACK = pygame.Color(0, 0, 0)
 
 ALL_COLORS = [CYAN, BLUE, TEAL, LIME, YELLOW, ORANGE, RED, PURPLE, PINK, WHITE]
 
@@ -42,7 +43,7 @@ class NeonLine:
 class NeonRenderer:
 
     def __init__(self,
-                 ambient_bloom_kernel=(25, 25),
+                 ambient_bloom_kernel=(15, 15),
                  mid_tone_bloom_kernel=(3, 3),
                  highlight_bloom_kernel=None):
         self.ambient_bloom_kernel = ambient_bloom_kernel
@@ -53,54 +54,61 @@ class NeonRenderer:
         self.post_processing_darken_factor = 0.9
         self.post_processing_contrast_factor = None  # makes things worse, so disabled
 
-    def draw_lines(self, surface: pygame.Surface, lines: Iterable[NeonLine]):
-        array = pygame.surfarray.array3d(surface)
+        # enabled
+        self._enabled = True
+
+        self._buf = None
+        self._tmp = None
+
+    def set_enabled(self, val):
+        self._enabled = val
+
+    def draw_lines(self, surface: pygame.Surface, lines: Iterable[NeonLine], bg_color=BLACK):
+        if not self._enabled:
+            for line in lines:
+                pygame.draw.lines(surface, line.color, False, line.vector_points, width=line.width)
+            return
+
+        if self._buf is None or (self._buf.shape[0], self._buf.shape[1]) != surface.get_size():
+            self._buf = pygame.surfarray.array3d(surface)
+            self._tmp = pygame.surfarray.array3d(surface)
+        array = self._buf
+        array[:] = tuple(bg_color)[:3]
 
         # Ghast's Neon Line Drawing AlgorithmTM
 
         # 1st pass, draw large, dark, faint glow around line
         for line in lines:
-            cv2.polylines(array, [line.np_points], False, line.color.lerp((0, 0, 0), 0.15), line.width)
-        if self.ambient_bloom_kernel is not None:
-            array = cv2.blur(array, self.ambient_bloom_kernel)
+            self.polylines(array, [line.np_points], False, line.color.lerp((0, 0, 0), 0.15), line.width)
+        self._blur(array, self.ambient_bloom_kernel)
 
         # 2nd pass, draw smaller, brighter glow
         for line in lines:
-            cv2.polylines(array, [line.np_points], False, line.color, line.inner_width, lineType=cv2.LINE_AA)
-        if self.mid_tone_bloom_kernel is not None:
-            array = cv2.blur(array, self.mid_tone_bloom_kernel)
+            self.polylines(array, [line.np_points], False, line.color, line.inner_width)
+        self._blur(array, self.mid_tone_bloom_kernel)
 
         # 3rd pass, draw anti-aliased highlight
         for line in lines:
-            cv2.polylines(array, [line.np_points], False, line.inner_color.lerp((255, 255, 255), 0.7), line.inner_width, lineType=cv2.LINE_AA)
-        if self.highlight_bloom_kernel is not None:
-            array = cv2.blur(array, self.highlight_bloom_kernel)
+            self.polylines(array, [line.np_points], False, line.inner_color.lerp((255, 255, 255), 0.7), line.inner_width, lineType=cv2.LINE_AA)
+        self._blur(array, self.highlight_bloom_kernel)
 
         # post processing effects
-        if self.post_processing_darken_factor is not None:
-            array = self._darken(array, self.post_processing_darken_factor)
-        if self.post_processing_contrast_factor is not None:
-            array = self._contrast(array, self.post_processing_contrast_factor)
+        self._darken(array, self.post_processing_darken_factor)
 
         pygame.surfarray.blit_array(surface, array)
 
+    def polylines(self, array, pts, connected, color, width, lineType=cv2.LINE_4):
+        cv2.polylines(array, pts, connected, color, width, lineType=lineType)
+
+    def _blur(self, array, kernel):
+        if kernel is not None:
+            cv2.blur(array, kernel, dst=array)
+
     def _darken(self, array, factor):
-        hsvImg = cv2.cvtColor(array, cv2.COLOR_RGB2HSV)
-        hsvImg[..., 2] = hsvImg[..., 2] * factor
-        return cv2.cvtColor(hsvImg, cv2.COLOR_HSV2RGB)
-
-    def _contrast(self, array, factor):
-        # yoinked from https://stackoverflow.com/a/41075028
-        lab = cv2.cvtColor(array, cv2.COLOR_BGR2LAB)
-        l, a, b = cv2.split(lab)
-        clahe = cv2.createCLAHE(clipLimit=4.0, tileGridSize=(18, 18))
-        cl = clahe.apply(l)
-
-        # -----Merge the CLAHE enhanced L-channel with the a and b channel-----------
-        limg = cv2.merge((cl, a, b))
-
-        # -----Converting image from LAB Color model to RGB model--------------------
-        return cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
+        if factor < 1:
+            cv2.cvtColor(array, cv2.COLOR_RGB2HSV, dst=self._tmp)
+            self._tmp[..., 2] = self._tmp[..., 2] * factor
+            cv2.cvtColor(self._tmp, cv2.COLOR_HSV2RGB, dst=array)
 
 
 if __name__ == "__main__":

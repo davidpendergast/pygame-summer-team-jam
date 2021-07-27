@@ -1,7 +1,7 @@
 import math
 import pygame
 
-import neon
+import rendering.neon as neon
 
 
 class Renderer:
@@ -81,3 +81,6 @@ def preview_code():
         pygame.display.update()
         pygame.display.set_caption(str(int(clock.get_fps())))
         clock.tick(0)
+
+if __name__ == "__main__":
+    preview_code()

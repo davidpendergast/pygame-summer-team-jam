@@ -103,8 +103,11 @@ class Level:
         return 10
 
     def get_cell_length(self):
-        """Returns the z-length of the level's 'cells', or None if it shouldn't be drawn with cells."""
+        """Returns the z-length of the level's 'cells'."""
         return None
+
+    def should_render_cells(self):
+        return True
 
     def get_color(self, z: float) -> Color:
         """Returns the level's color at the given z coordinate."""
@@ -131,38 +134,94 @@ class Level:
         pass
 
 
-class InfiniteTestLevel(Level):
+class InfiniteGeneratingLevel(Level):
 
     def __init__(self, lanes):
         super().__init__(lanes)
         self._obstacle_grid = {}  # (lane_n, cell_idx) -> Obstacle
+        self._currently_loaded_cell_range = None  # will be [int, int] if populated
 
     def get_cell_length(self):
-        return 10
+        return 20
 
     def get_player_speed(self, z: float):
-        return self.get_cell_length() * 2  # 2 cells per second
+        return self.get_cell_length() * 3
 
-    def load_obstacles(self, z_start, z_end):
-        import random
-        cs = self.get_cell_length()
-        cell_start = z_start // cs
-        cell_end = z_end // cs
+    def _generate_obstacles(self, cell_start, cell_end):
         for n in range(self.number_of_lanes()):
             for i in range(cell_start, cell_end):
-                if random.random() < 0.333:
-                    self._obstacle_grid[(n, i)] = random.choice([Wall(n, i * cs, cs),
-                                                                 Spikes(n, i * cs, cs),
-                                                                 Enemy(n, i * cs, cs)])
+                obs = self.generate_obstacle_at_cell(n, i)
+                if obs is not None:
+                    self._obstacle_grid[(n, i)] = obs
+
+    def generate_obstacle_at_cell(self, n, i) -> Obstacle:
+        """Subclasses can override this to implement custom generation logic."""
+        import random
+        if random.random() < 0.333:
+            r = random.randint(0, 3)
+            cs = self.get_cell_length()
+            if r == 0:
+                return Wall(n, i * cs, cs)
+            elif r == 1:
+                return Spikes(n, i * cs, cs)
+            else:
+                return Enemy(n, i * cs, cs)
+        else:
+            return None
+
+    def get_obstacle_at_cell_if_loaded(self, n, i):
+        if (n, i) in self._obstacle_grid:
+            return self._obstacle_grid[(n, i)]
+        else:
+            return None
 
     def unload_obstacles(self, z_end):
-        cell_end = z_end // self.get_cell_length()
-        self._obstacle_grid = {p: self._obstacle_grid[p] for p in self._obstacle_grid if p[1] >= cell_end}
+        cell_end = int(z_end / self.get_cell_length())
+        if self._currently_loaded_cell_range is None or self._currently_loaded_cell_range[0] >= cell_end:
+            pass  # nothing to unload
+        else:
+            self._obstacle_grid = {p: self._obstacle_grid[p] for p in self._obstacle_grid if p[1] >= cell_end}
+            if cell_end < self._currently_loaded_cell_range[1]:
+                # we unloaded a portion of the loaded cells
+                self._currently_loaded_cell_range[0] = cell_end
+            else:
+                # we unloaded everything
+                self._currently_loaded_cell_range = None
 
-    def get_all_obstacles_between(self, n, z_start, z_end):
+    def get_all_obstacles_between(self, n, z_start, z_end) -> List[Obstacle]:
+        """
+        Fetches all the obstacles in the specified lane between the two z coordinates. Will generate
+        that portion of the level if necessary.
+        """
         cs = self.get_cell_length()
-        cell_start = z_start // cs
-        cell_end = z_end // cs
+        cell_start = int(z_start / cs)
+        cell_end = int(z_end / cs + 1)
+
+        new_range = [cell_start, cell_end]
+        old_range = self._currently_loaded_cell_range
+
+        if old_range is None:
+            # starting from scratch
+            self._generate_obstacles(new_range[0], new_range[1])
+            self._currently_loaded_cell_range = [new_range[0], new_range[1]]
+            old_range = self._currently_loaded_cell_range
+        elif new_range[1] <= old_range[0]:
+            # new region is completely before the already-generated region
+            self._generate_obstacles(cell_start, self._currently_loaded_cell_range[0])
+        elif old_range[1] <= new_range[0]:
+            # new region is completely after the already-generated region
+            self._generate_obstacles(self._currently_loaded_cell_range[0], cell_end)
+        elif old_range[0] <= new_range[0] and new_range[1] <= old_range[1]:
+            pass  # we've already generated the requested region
+        else:
+            # new and old regions are overlapping
+            if new_range[0] < old_range[0]:
+                self._generate_obstacles(new_range[0], old_range[0])
+            if old_range[1] < new_range[1]:
+                self._generate_obstacles(old_range[1], new_range[1])
+
+        self._currently_loaded_cell_range[0] = min(new_range[0], old_range[0])
+        self._currently_loaded_cell_range[1] = max(new_range[1], old_range[1])
 
         return [self._obstacle_grid[(n, i)] for i in range(cell_start, cell_end) if (n, i) in self._obstacle_grid]
 

@@ -79,6 +79,9 @@ class Player:
                 if e.key in keybinds.SLIDE:
                     self.set_mode('run')
 
+    def set_speed(self, speed):
+        self.speed = speed
+
     def update(self, dt, events=None):
         self.y += self.dy * dt
         if self.y > 0:

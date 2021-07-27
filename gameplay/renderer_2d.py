@@ -74,7 +74,7 @@ def preview_code():
                     sys.exit(0)
         screen.fill((0, 0, 0))
         r.update(events)
-        p.update(events)
+        p.update(1 / 60, events)
         r.render_level()
         p.draw(screen)
         utility_functions.Text(screen, 'FPS: ' + str(int(clock.get_fps())), 25, 25, 25).draw()

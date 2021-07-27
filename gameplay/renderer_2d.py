@@ -6,12 +6,12 @@ import pygame
 # horizontal -> x-axis
 # vertical -> y-axis
 # into-the-screen-axis -> z-axis
-import player_2d
-import utility_functions
+import gameplay.player2d as player2d
+import util.utility_functions as utility_functions
 
 
 class Level:
-    def __init__(self, player: player_2d.Player, sides=6):
+    def __init__(self, player: player2d.Player, sides=6):
         self.lanes = sides
         self.player = player
         self.length = 1000
@@ -53,7 +53,6 @@ class Renderer:
 
 def preview_code():
     import sys
-    import utility_functions
 
     pygame.init()
 
@@ -61,7 +60,7 @@ def preview_code():
 
     clock = pygame.time.Clock()
 
-    p = player_2d.Player()
+    p = player2d.Player()
     level1 = Level(p)
     r = Renderer(screen, level1)
 
@@ -75,7 +74,7 @@ def preview_code():
                     sys.exit(0)
         screen.fill((0, 0, 0))
         r.update(events)
-        p.update(events)
+        p.update(1 / 60, events)
         r.render_level()
         p.draw(screen)
         utility_functions.Text(screen, 'FPS: ' + str(int(clock.get_fps())), 25, 25, 25).draw()

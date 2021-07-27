@@ -35,7 +35,7 @@ class MockGameplayMode(main.GameMode):
         z_i = self.z // self.section_length
         for i in range(self.foresight):
             all_lines.extend(levelbuilder3d.build_section((i + z_i) * self.section_length, self.section_length, self.n,
-                                                          self.radius, 0, None, None))
+                                                          self.radius, 0))
 
         for i in range(self.foresight):
             for lane_n in range(self.n):

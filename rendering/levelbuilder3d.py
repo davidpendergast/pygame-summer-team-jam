@@ -5,6 +5,7 @@ import rendering.neon as neon
 
 
 class PlayerState:
+
     def __init__(self, z, lane_n, height_from_floor, animation, color, x_in_lane=0):
         self.z = z
         self.x_in_lane = x_in_lane
@@ -23,7 +24,7 @@ def get_ring_points(z, n, radius, rotation) -> List[Vector3]:
     return res
 
 
-def build_section(z, length, n, radius, rotation, player_state, obstacles) -> List[threedee.Line3D]:
+def build_section(z, length, n, radius, rotation) -> List[threedee.Line3D]:
     ground_lines = []
     near_ring = get_ring_points(z, n, radius, rotation)
     far_ring = get_ring_points(z + length, n, radius, rotation)
@@ -33,6 +34,12 @@ def build_section(z, length, n, radius, rotation, player_state, obstacles) -> Li
         ground_lines.append(threedee.Line3D(far_ring[i], far_ring[i - 1], color=neon.BLUE))
 
     return ground_lines
+
+
+def build_obstacle(obs, n, radius, rotation) -> List[threedee.Line3D]:
+    # TODO get real model from obstacle and xform it
+    return build_rect(obs.z, obs.length, n, radius, rotation, obs.lane, radius / 20, obs.color, 1,
+                      with_x=not obs.can_slide_through())
 
 
 def build_rect(z_start, length, n, radius, rotation, lane_n, hover_height, color, width, with_x=False) -> List[threedee.Line3D]:

@@ -1,5 +1,4 @@
 import pygame
-import time
 import keybinds
 
 import util.utility_functions as utility_functions

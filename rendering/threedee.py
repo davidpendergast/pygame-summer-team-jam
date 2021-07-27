@@ -189,6 +189,9 @@ if __name__ == "__main__":
                     neon_renderer.set_enabled(use_neon)
                 elif e.key == pygame.K_p:
                     profiling.get_instance().toggle()
+                elif e.key == pygame.K_m:
+                    neon_renderer.draw_mode = 1 if neon_renderer.draw_mode == 2 else 2
+                    print("Switching to render mode: {} ({})".format(neon_renderer.draw_mode, "pixelcopy" if neon_renderer.draw_mode == 2 else "blit_array"))
 
         keys_held = pygame.key.get_pressed()
         if keys_held[pygame.K_LEFT] or keys_held[pygame.K_RIGHT]:

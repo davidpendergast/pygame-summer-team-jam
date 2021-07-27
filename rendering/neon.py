@@ -66,6 +66,10 @@ class NeonRenderer:
         self._buf = None
         self._tmp = None
 
+        self._buf2 = None
+
+        self.draw_mode = 2
+
     def set_enabled(self, val):
         self._enabled = val
 
@@ -73,7 +77,12 @@ class NeonRenderer:
         if not self._enabled:
             for line in lines:
                 pygame.draw.lines(surface, line.color, False, line.vector_points, width=line.width)
-            return
+        elif self.draw_mode == 1:
+            self.draw_lines1(surface, lines, bg_color=bg_color)
+        else:
+            self.draw_lines2(surface, lines, bg_color=bg_color)
+
+    def draw_lines1(self, surface: pygame.Surface, lines: Iterable[NeonLine], bg_color=BLACK):
 
         if self._buf is None or (self._buf.shape[0], self._buf.shape[1]) != surface.get_size():
             self._buf = pygame.surfarray.array3d(surface)
@@ -99,9 +108,42 @@ class NeonRenderer:
         self._blur(array, self.highlight_bloom_kernel)
 
         # post processing effects
-        self._darken(array, self.post_processing_darken_factor)
+        # self._darken(array, self.post_processing_darken_factor)
 
         pygame.surfarray.blit_array(surface, array)
+
+    def draw_lines2(self, surface: pygame.Surface, lines: Iterable[NeonLine], bg_color=BLACK):
+        if self._buf2 is None or (self._buf2.shape[0], self._buf2.shape[1]) != surface.get_size():
+            self._buf2 = numpy.zeros((surface.get_width(), surface.get_height(), 3), dtype=numpy.int32)
+
+        pygame.pixelcopy.surface_to_array(self._buf2, surface)
+        array = self._buf2
+
+        # Ghast's Neon Line Drawing AlgorithmTM
+
+        # 1st pass, draw large, dark, faint glow around line
+        for line in lines:
+            self.polylines(array, [line.np_points], False, line.color.lerp((0, 0, 0), 0.15), line.width)
+        self._blur(array, self.ambient_bloom_kernel)
+
+        # 2nd pass, draw smaller, brighter glow
+        for line in lines:
+            self.polylines(array, [line.np_points], False, line.color, line.inner_width)
+        self._blur(array, self.mid_tone_bloom_kernel)
+
+        # 3rd pass, draw anti-aliased highlight
+        for line in lines:
+            self.polylines(array, [line.np_points], False, line.inner_color.lerp((255, 255, 255), 0.7), line.inner_width, lineType=cv2.LINE_AA)
+        self._blur(array, self.highlight_bloom_kernel)
+
+        # post processing effects
+        #darken_factor = self.post_processing_darken_factor
+        #if darken_factor < 1 and False:
+        #    tmp = cv2.cvtColor(array.astype('float32'), cv2.COLOR_RGB2HSV)
+        #    tmp[..., 2] = tmp[..., 2] * darken_factor
+        #    array = cv2.cvtColor(tmp, cv2.COLOR_HSV2RGB).astype('int32')
+
+        pygame.pixelcopy.array_to_surface(surface, array)
 
     def polylines(self, array, pts, connected, color, width, lineType=cv2.LINE_4):
         cv2.polylines(array, pts, connected, color, width, lineType=lineType)

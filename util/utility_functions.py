@@ -2,6 +2,7 @@ import math
 from typing import Union
 import pygame
 import time
+import sys, os, pathlib
 # import config
 
 pygame.init()
@@ -11,10 +12,21 @@ def distance(p1: Union[tuple, list], p2: Union[tuple, list]) -> float:
     return math.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2)
 
 
-def get_display_resolution() -> tuple[int, int]:
+def get_display_resolution():# -> tuple[int, int]:
     display_width: int = pygame.display.Info().current_w
     display_height: int = pygame.display.Info().current_h
     return display_width, display_height
+
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except AttributeError:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, str(pathlib.Path(relative_path)))
 
 
 class SpriteSheet:
@@ -61,7 +73,7 @@ class Text:
         self.y = y
         self.size = size
         self.color = color
-        text_font = pygame.font.Font('VectorBattle-e9XO.ttf', self.size)
+        text_font = pygame.font.Font(resource_path('assets/VectorBattle-e9XO.ttf'), self.size)
         self.text = text_font.render(self.msg, False, self.color)
         self.blink = blink
         self.blink_timer = time.time()

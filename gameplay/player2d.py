@@ -1,7 +1,7 @@
 import pygame
 import time
 
-import utility_functions
+import util.utility_functions as utility_functions
 
 
 class Player:

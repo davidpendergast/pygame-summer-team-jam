@@ -48,7 +48,7 @@ class GameplayMode(main.GameMode):
                 if e.key in keybinds.SLIDE:
                     self.player.slide()
                 if e.key == pygame.K_ESCAPE:
-                    pass
+                    self.state = -1     # the GameLoop will end this menu
                     # TODO we should REALLY fix this to allow to pop menus from gameloop
             if e.type == pygame.KEYUP:
                 if e.key in keybinds.SLIDE:

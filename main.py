@@ -72,7 +72,7 @@ class MainMenuMode(GameMode):
 
     def __init__(self, loop: GameLoop):
         super().__init__(loop)
-
+        self.song = pygame
         self.selected_option_idx = 0
         self.options = [
             ("start", lambda: self.start_pressed()),
@@ -81,8 +81,8 @@ class MainMenuMode(GameMode):
             ("exit", lambda: self.exit_pressed())
         ]
 
-        self.title_font = pygame.font.Font(pygame.font.get_default_font(), 36)
-        self.option_font = pygame.font.Font(pygame.font.get_default_font(), 24)
+        self.title_font = pygame.font.Font("assets/fonts/VectorBattle-e9XO.ttf", 36)
+        self.option_font = pygame.font.Font("assets/fonts/VectorBattle-e9XO.ttf", 24)
 
     def on_mode_start(self):
         # TODO song

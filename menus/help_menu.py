@@ -27,6 +27,7 @@ class HelpMenuMode(GameMode):
 
     @staticmethod
     def get_square_points(x, y, angle, size=50):
+        # points of a square rotated at an angle with respect to it's center
         points = [
             [-size // 2, - size // 2],
             [size // 2, - size // 2],

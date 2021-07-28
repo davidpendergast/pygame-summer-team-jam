@@ -81,8 +81,8 @@ class MainMenuMode(GameMode):
             ("exit", lambda: self.exit_pressed())
         ]
 
-        self.title_font = pygame.font.Font("assets/fonts/VectorBattle-e9XO.ttf", 36)
-        self.option_font = pygame.font.Font("assets/fonts/VectorBattle-e9XO.ttf", 24)
+        self.title_font = pygame.font.Font("assets/fonts/VectorBattle-e9XO.ttf", config.TITLE_SIZE)
+        self.option_font = pygame.font.Font("assets/fonts/VectorBattle-e9XO.ttf", config.OPTION_SIZE)
 
     def on_mode_start(self):
         # TODO song

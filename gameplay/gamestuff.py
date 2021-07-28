@@ -1,5 +1,6 @@
 import pygame
 
+import config
 import main
 import gameplay.player2d as player2d
 import gameplay.levels as levels
@@ -48,8 +49,7 @@ class GameplayMode(main.GameMode):
                 if e.key in keybinds.SLIDE:
                     self.player.slide()
                 if e.key == pygame.K_ESCAPE:
-                    self.state = -1     # the GameLoop will end this menu
-                    # TODO we should REALLY fix this to allow to pop menus from gameloop
+                    self.loop.set_next_mode(PauseMenu(self.loop))
             if e.type == pygame.KEYUP:
                 if e.key in keybinds.SLIDE:
                     self.player.set_mode('run')
@@ -78,3 +78,57 @@ class GameplayMode(main.GameMode):
         neon_lines = neon.NeonLine.convert_line2ds_to_neon_lines(all_2d_lines)
 
         self.neon_renderer.draw_lines(screen, neon_lines)
+
+
+class PauseMenu(main.GameMode):
+    def __init__(self, loop):
+        super().__init__(loop)
+        self.selected_option_idx = 0
+        self.options = [
+            ("continue", lambda: self.continue_pressed()),
+            ("exit", lambda: self.exit_pressed())
+        ]
+
+        self.title_font = pygame.font.Font("assets/fonts/VectorBattle-e9XO.ttf", config.TITLE_SIZE)
+        self.option_font = pygame.font.Font("assets/fonts/VectorBattle-e9XO.ttf", config.OPTION_SIZE)
+
+    def update(self, dt, events):
+        for e in events:
+            if e.type == pygame.KEYDOWN:
+                if e.key in keybinds.MENU_UP:
+                    # TODO play menu blip sound
+                    self.selected_option_idx = (self.selected_option_idx - 1) % len(self.options)
+                elif e.key in keybinds.MENU_DOWN:
+                    # TODO play menu blip sound
+                    self.selected_option_idx = (self.selected_option_idx + 1) % len(self.options)
+                elif e.key in keybinds.MENU_ACCEPT:
+                    self.options[self.selected_option_idx][1]()  # activate the option's lambda
+                    return
+                elif e.key in keybinds.MENU_CANCEL:
+                    self.continue_pressed()
+                    return
+
+    def continue_pressed(self):
+        self.state = -1
+
+    def exit_pressed(self):
+        del self.loop.modes[-2:]
+
+    def draw_to_screen(self, screen):
+        screen_size = screen.get_size()
+        title_surface = self.title_font.render('Pause', True, neon.WHITE)
+
+        title_size = title_surface.get_size()
+        title_y = screen_size[1] // 3 - title_size[1] // 2
+        screen.blit(title_surface, dest=(screen_size[0] // 2 - title_size[0] // 2, title_y))
+
+        option_y = max(screen_size[1] // 2, title_y + title_size[1])
+        for i in range(len(self.options)):
+            option_text = self.options[i][0]
+            is_selected = i == self.selected_option_idx
+            color = neon.WHITE if not is_selected else neon.ORANGE
+
+            option_surface = self.option_font.render(option_text, True, color)
+            option_size = option_surface.get_size()
+            screen.blit(option_surface, dest=(screen_size[0] // 2 - option_size[0] // 2, option_y))
+            option_y += option_size[1]

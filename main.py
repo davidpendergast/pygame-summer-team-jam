@@ -2,6 +2,7 @@ import pygame
 import time
 
 import keybinds
+import menus.help_menu
 import rendering.neon as neon
 
 TARGET_FPS = 60
@@ -51,6 +52,7 @@ class GameLoop:
             self.current_mode.draw_to_screen(screen)
 
             pygame.display.flip()
+            pygame.time.Clock().tick(TARGET_FPS)
 
 
 class GameMode:
@@ -99,7 +101,8 @@ class MainMenuMode(GameMode):
 
     def help_pressed(self):
         import gameplay.mockgamestuff
-        self.loop.set_next_mode(gameplay.mockgamestuff.MockGameplayMode(self.loop))
+        self.loop.set_next_mode(menus.help_menu.HelpMenuMode(self.loop))
+        # self.loop.set_next_mode(gameplay.mockgamestuff.MockGameplayMode(self.loop))
 
     def credits_pressed(self):
         # TODO add credits menu
@@ -147,7 +150,7 @@ class MainMenuMode(GameMode):
 
 if __name__ == "__main__":
     pygame.init()
-    pygame.display.set_mode((W, H), pygame.SCALED | pygame.RESIZABLE)
+    pygame.display.set_mode((W, H), pygame.SCALED)
 
     loop = GameLoop()
     loop.start()

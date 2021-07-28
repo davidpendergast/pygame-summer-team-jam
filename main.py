@@ -41,7 +41,7 @@ class GameLoop:
                 self.modes[-1].on_mode_end()
                 self.modes.pop()
 
-            dt = self.clock.tick(TARGET_FPS)
+            dt = self.clock.tick(TARGET_FPS)/1000.0
             self.modes[-1].update(dt, events)
             self.modes[-1].draw_to_screen(self.screen)
             pygame.display.flip()

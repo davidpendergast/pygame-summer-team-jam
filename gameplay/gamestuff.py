@@ -6,6 +6,7 @@ import gameplay.levels as levels
 import rendering.neon as neon
 import rendering.threedee as threedee
 import rendering.levelbuilder3d as levelbuilder3d
+import keybinds
 
 
 class GameplayMode(main.GameMode):
@@ -26,13 +27,35 @@ class GameplayMode(main.GameMode):
     def update(self, dt, events):
         cur_z = self.player.z
         self.player.set_speed(self.current_level.get_player_speed(cur_z))
-        self.player.update(dt, events)
+        self.player.update(dt)
+        self.handle_events(events)
         # TODO check for collisions and stuff
 
         self.camera.position.z = self.player.z + self.camera_z_offset
         self.current_level.unload_obstacles(self.camera.position.z + self.unload_offset)
 
+    def handle_events(self, events):
+        if events is None:
+            return
+        for e in events:
+            if e.type == pygame.KEYDOWN:
+                if e.key in keybinds.JUMP:
+                    self.player.jump()
+                if e.key in keybinds.LEFT:
+                    self.player.move_left()
+                if e.key in keybinds.RIGHT:
+                    self.player.move_right()
+                if e.key in keybinds.SLIDE:
+                    self.player.slide()
+                if e.key == pygame.K_ESCAPE:
+                    pass
+                    # TODO we should REALLY fix this to allow to pop menus from gameloop
+            if e.type == pygame.KEYUP:
+                if e.key in keybinds.SLIDE:
+                    self.player.set_mode('run')
+
     def draw_to_screen(self, screen):
+        screen.fill((0, 0, 0))
         all_lines = []
         cell_length = self.current_level.get_cell_length()
         z = self.camera.position.z

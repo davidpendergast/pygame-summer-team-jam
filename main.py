@@ -1,13 +1,13 @@
 import pygame
-import time
 
 import keybinds
 import rendering.neon as neon
+import config
 
-TARGET_FPS = 60
+TARGET_FPS = config.BASE_FPS
 
 # this is only the default size, use pygame.display.get_surface().get_size() to get the current size.
-W, H = (600, 300)
+W, H = config.DISP_WID, config.DISP_HEI
 
 
 class GameLoop:
@@ -15,14 +15,13 @@ class GameLoop:
     def __init__(self):
         self.running = True
         self.clock = pygame.time.Clock()
-        self.current_mode: GameMode = MainMenuMode(self)
-        self.next_mode = None
+        self.screen = pygame.display.get_surface()
+        self.modes = [MainMenuMode(self)]
 
     def set_next_mode(self, next_mode):
-        self.next_mode = next_mode
+        self.modes.append(next_mode)
 
     def start(self):
-        last_tick_time_secs = time.time()
 
         while self.running:
             events = []
@@ -35,21 +34,16 @@ class GameLoop:
                     # collect all the events so we can pass them into the current game mode.
                     events.append(e)
 
-            if self.next_mode is not None:
-                self.current_mode.on_mode_end()
-                self.current_mode = self.next_mode
-                self.current_mode.on_mode_start()
+            if self.modes[-1].state == 0:
+                self.modes[-1].on_mode_start()
+                self.modes[-1].state = 1
+            elif self.modes[-1].state == -1:
+                self.modes[-1].on_mode_end()
+                self.modes.pop()
 
-            cur_time = time.time()
-            dt = cur_time - last_tick_time_secs
-
-            self.current_mode.update(dt, events)
-            last_tick_time_secs = cur_time
-
-            screen = pygame.display.get_surface()
-            screen.fill((0, 0, 0))
-            self.current_mode.draw_to_screen(screen)
-
+            dt = self.clock.tick(TARGET_FPS)
+            self.modes[-1].update(dt, events)
+            self.modes[-1].draw_to_screen(self.screen)
             pygame.display.flip()
 
 
@@ -57,6 +51,7 @@ class GameMode:
 
     def __init__(self, loop: GameLoop):
         self.loop: GameLoop = loop
+        self.state = 0
 
     def on_mode_start(self):
         """Called when mode becomes active"""
@@ -124,7 +119,8 @@ class MainMenuMode(GameMode):
                     self.exit_pressed()
                     return
 
-    def draw_to_screen(self, screen):
+    def draw_to_screen(self, screen: pygame.Surface):
+        screen.fill((0, 0, 0))
         screen_size = screen.get_size()
         title_surface = self.title_font.render('Tempest Run', True, neon.WHITE)
 

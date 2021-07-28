@@ -112,10 +112,7 @@ class NeonRenderer:
 
     def _darken(self, array, factor):
         if factor < 1:
-            cv2.cvtColor(array, cv2.COLOR_RGB2HSV, dst=self._tmp)
-            self._tmp[..., 2] = self._tmp[..., 2] * factor
-            cv2.cvtColor(self._tmp, cv2.COLOR_HSV2RGB, dst=array)
-
+            array[...] = array*factor
 
 if __name__ == "__main__":
     import random

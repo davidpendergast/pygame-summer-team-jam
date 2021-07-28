@@ -31,6 +31,7 @@ class MockGameplayMode(main.GameMode):
         self.camera.position.z = self.z + self.camera_z_offset
 
     def draw_to_screen(self, screen):
+        screen.fill((0, 0, 0))
         all_lines = []
         z_i = self.z // self.section_length
         for i in range(self.foresight):

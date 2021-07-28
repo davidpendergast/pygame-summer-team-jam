@@ -41,18 +41,6 @@ class HelpMenuMode(GameMode):
         # TODO song
         pass
 
-    def start_pressed(self):
-        import gameplay.gamestuff  # shh don't tell pylint about this
-        self.loop.set_next_mode(gameplay.gamestuff.GameplayMode(self.loop))
-
-    def help_pressed(self):
-        import gameplay.mockgamestuff
-        self.loop.set_next_mode(gameplay.mockgamestuff.MockGameplayMode(self.loop))
-
-    def credits_pressed(self):
-        # TODO add credits menu
-        pass
-
     def exit_pressed(self):
         self.loop.running = False
 

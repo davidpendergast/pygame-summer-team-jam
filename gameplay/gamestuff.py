@@ -89,8 +89,8 @@ class PauseMenu(main.GameMode):
             ("exit", lambda: self.exit_pressed())
         ]
 
-        self.title_font = pygame.font.Font("assets/fonts/VectorBattle-e9XO.ttf", config.TITLE_SIZE)
-        self.option_font = pygame.font.Font("assets/fonts/VectorBattle-e9XO.ttf", config.OPTION_SIZE)
+        self.title_font = pygame.font.Font("assets/fonts/CONSOLA.TTF", config.TITLE_SIZE)
+        self.option_font = pygame.font.Font("assets/fonts/CONSOLA.TTF", config.OPTION_SIZE)
 
     def update(self, dt, events):
         for e in events:
@@ -116,7 +116,7 @@ class PauseMenu(main.GameMode):
 
     def draw_to_screen(self, screen):
         screen_size = screen.get_size()
-        title_surface = self.title_font.render('Pause', True, neon.WHITE)
+        title_surface = self.title_font.render('PAUSE', True, neon.WHITE)
 
         title_size = title_surface.get_size()
         title_y = screen_size[1] // 3 - title_size[1] // 2

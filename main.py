@@ -4,7 +4,11 @@ import keybinds
 import rendering.neon as neon
 import config
 
-TARGET_FPS = config.BASE_FPS
+
+# TESTMODE flag
+TESTMODE = config.TESTMODE
+
+TARGET_FPS = config.BASE_FPS if not TESTMODE else -1
 
 # this is only the default size, use pygame.display.get_surface().get_size() to get the current size.
 W, H = config.DISP_WID, config.DISP_HEI
@@ -46,6 +50,9 @@ class GameLoop:
             self.modes[-1].draw_to_screen(self.screen)
             pygame.display.flip()
 
+            if TESTMODE:
+                pygame.display.set_caption(f"TEMPEST RUN {int(self.clock.get_fps())} FPS")
+
 
 class GameMode:
 
@@ -81,8 +88,8 @@ class MainMenuMode(GameMode):
             ("exit", lambda: self.exit_pressed())
         ]
 
-        self.title_font = pygame.font.Font("assets/fonts/VectorBattle-e9XO.ttf", config.TITLE_SIZE)
-        self.option_font = pygame.font.Font("assets/fonts/VectorBattle-e9XO.ttf", config.OPTION_SIZE)
+        self.title_font = pygame.font.Font("assets/fonts/CONSOLA.TTF", config.TITLE_SIZE)
+        self.option_font = pygame.font.Font("assets/fonts/CONSOLA.TTF", config.OPTION_SIZE)
 
     def on_mode_start(self):
         # TODO song
@@ -122,7 +129,7 @@ class MainMenuMode(GameMode):
     def draw_to_screen(self, screen: pygame.Surface):
         screen.fill((0, 0, 0))
         screen_size = screen.get_size()
-        title_surface = self.title_font.render('Tempest Run', True, neon.WHITE)
+        title_surface = self.title_font.render('TEMPEST RUN', True, neon.WHITE)
 
         title_size = title_surface.get_size()
         title_y = screen_size[1] // 3 - title_size[1] // 2
@@ -144,6 +151,6 @@ class MainMenuMode(GameMode):
 if __name__ == "__main__":
     pygame.init()
     pygame.display.set_mode((W, H), pygame.SCALED | pygame.RESIZABLE)
-
+    pygame.display.set_caption("TEMPEST RUN")
     loop = GameLoop()
     loop.start()

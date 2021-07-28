@@ -56,15 +56,10 @@ class NeonRenderer:
         self.mid_tone_bloom_kernel = mid_tone_bloom_kernel
         self.highlight_bloom_kernel = highlight_bloom_kernel
 
-        # post processing
-        self.post_processing_darken_factor = 0.9
-        self.post_processing_contrast_factor = None  # makes things worse, so disabled
-
         # enabled
         self._enabled = True
 
         self._buf = None
-        self._tmp = None
 
     def set_enabled(self, val):
         self._enabled = val
@@ -77,9 +72,9 @@ class NeonRenderer:
 
         if self._buf is None or (self._buf.shape[0], self._buf.shape[1]) != surface.get_size():
             self._buf = pygame.surfarray.array3d(surface)
-            self._tmp = pygame.surfarray.array3d(surface)
         array = self._buf
-        array[:] = tuple(bg_color)[:3]
+        # fill screen with black
+        array[...] = 0
 
         # Ghast's Neon Line Drawing AlgorithmTM
 
@@ -99,7 +94,7 @@ class NeonRenderer:
         self._blur(array, self.highlight_bloom_kernel)
 
         # post processing effects
-        self._darken(array, self.post_processing_darken_factor)
+        self._darken(array)
 
         pygame.surfarray.blit_array(surface, array)
 
@@ -110,9 +105,9 @@ class NeonRenderer:
         if kernel is not None:
             cv2.blur(array, kernel, dst=array)
 
-    def _darken(self, array, factor):
-        if factor < 1:
-            array[...] = array*factor
+    def _darken(self, array):
+        array[...] = array // 10 * 9
+
 
 if __name__ == "__main__":
     import random

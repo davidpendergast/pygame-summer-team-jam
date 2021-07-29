@@ -2,6 +2,7 @@ from typing import List, Iterable, Tuple
 import pygame
 import cv2
 import numpy
+import config
 
 
 # taken from https://www.coolneon.com/wp-content/uploads/2014/11/color-chart.png
@@ -60,13 +61,7 @@ class NeonRenderer:
         self.highlight_bloom_kernel = highlight_bloom_kernel
         self.darkness_factor = 1  # this is pretty krangled now, off by default~
 
-        self._enabled = True
-
         self._buf = None  # a buffer for intermediate drawing operations
-
-    def set_enabled(self, val):
-        """If false, this will use pygame.draw.line to draw lines, instead of the neon stuff."""
-        self._enabled = val
 
     def draw_lines(self, surface: pygame.Surface, lines: Iterable[NeonLine], extra_darkness_factor=1):
         """Draws lines with a fancy neon effect.
@@ -74,7 +69,7 @@ class NeonRenderer:
         :param lines: the lines to draw
         :param extra_darkness_factor: a value from 0 to 1 that will control the 'extra darkness' of the lines (0 being completely dark).
         """
-        if not self._enabled:
+        if not config.USE_NEON:
             for line in lines:
                 pygame.draw.lines(surface, line.color, False, line.vector_points, width=line.width)
             return

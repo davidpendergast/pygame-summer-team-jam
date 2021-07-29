@@ -195,11 +195,11 @@ if __name__ == "__main__":
                     sys.exit(0)
                 elif e.key == pygame.K_i:
                     print("camera = " + str(camera))
-                elif e.key == pygame.K_n:
-                    use_neon = not use_neon
-                    neon_renderer.set_enabled(use_neon)
                 elif e.key == pygame.K_p:
                     profiling.get_instance().toggle()
+                elif e.key == pygame.K_n:
+                    import config
+                    config.USE_NEON = not config.USE_NEON
 
         keys_held = pygame.key.get_pressed()
         if keys_held[pygame.K_LEFT] or keys_held[pygame.K_RIGHT]:

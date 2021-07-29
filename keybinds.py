@@ -11,3 +11,6 @@ MENU_UP = [pygame.K_w, pygame.K_UP]
 MENU_DOWN = [pygame.K_s, pygame.K_DOWN]
 MENU_ACCEPT = [pygame.K_RETURN, pygame.K_SPACE]
 MENU_CANCEL = [pygame.K_ESCAPE]
+
+TOGGLE_NEON = [pygame.K_n]
+TOGGLE_PROFILER = [pygame.K_F1]

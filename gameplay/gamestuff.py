@@ -10,7 +10,6 @@ import rendering.levelbuilder3d as levelbuilder3d
 import keybinds
 import util.utility_functions as utility_functions
 import config
-import util.profiling as profiling
 
 
 class GameplayMode(main.GameMode):
@@ -53,8 +52,6 @@ class GameplayMode(main.GameMode):
                     self.player.slide()
                 if e.key == pygame.K_ESCAPE:
                     self.loop.set_next_mode(PauseMenu(self.loop))
-                if config.TESTMODE and e.key == pygame.K_F1:
-                    profiling.get_instance().toggle()
             if e.type == pygame.KEYUP:
                 if e.key in keybinds.SLIDE:
                     self.player.set_mode('run')
@@ -71,14 +68,11 @@ class GameplayMode(main.GameMode):
         for i in range(cell_start, cell_end):
             all_lines.extend(levelbuilder3d.build_section(i * cell_length, cell_length, self.current_level))
 
-        n_obstacles = 0
         for n in range(n_lanes):
             obstacles = self.current_level.get_all_obstacles_between(n, z, z + self.foresight)
             for obs in reversed(obstacles):
                 # add them from from back to front so they overlap properly
                 all_lines.extend(levelbuilder3d.build_obstacle(obs, self.current_level))
-            n_obstacles += len(obstacles)
-        print("n obstacles = {}".format(n_obstacles))
 
         all_lines.extend(levelbuilder3d.get_player_shape(self.player, self.current_level))
 

@@ -70,6 +70,7 @@ class MainEditor:
         self.buttons = [Button(display, 'SAVE', 350, 50, action=self.save_img),
                         Button(display, 'UNDO', 350, 150, action=self.undo),
                         Button(display, 'REDO', 350, 250, action=self.redo)]
+        self.mode_button = Button(self.display, self.mode.upper(), 350, 350, action=self.toggle_mode)
 
     def scale_up(self):
         self.scale += 1
@@ -80,6 +81,13 @@ class MainEditor:
         self.scale -= 1
         if self.scale < 1:
             self.scale = 1
+
+    def toggle_mode(self):
+        if self.mode == 'pen':
+            self.mode = 'eraser'
+        elif self.mode == 'eraser':
+            self.mode = 'pen'
+        self.mode_button = Button(self.display, self.mode.upper(), 350, 350, action=self.toggle_mode)
 
     def undo(self):
         if len(self.point_pairs) > 0:
@@ -129,21 +137,23 @@ class MainEditor:
                             self.selected_point = None
                             self.point_history = []
                     elif self.mode == 'eraser':
-                        print(self.point_pairs)
+                        indexes_to_remove = []
                         for i in range(len(self.point_pairs)):
                             for j in range(len(self.point_pairs[i])):
                                 x = (pos[0] - self.image_offset.x) // self.scale
                                 y = (pos[1] - self.image_offset.y) // self.scale
-                                print(self.point_pairs[i][j], '___', [x, y])
                                 if [x, y] == self.point_pairs[i][j]:
-                                    self.point_pairs.pop(i)
-                                    continue
+                                    indexes_to_remove.append(i)
+                        for i in range(len(indexes_to_remove)):
+                            self.point_history.append(self.point_pairs[indexes_to_remove[i]])
+                        self.point_pairs = [self.point_pairs[i] for i in range(len(self.point_pairs)) if i not in indexes_to_remove]
 
     def update(self):
         events = pygame.event.get()
         self.check_events(events)
         for i in self.buttons:
             i.update(events)
+        self.mode_button.update(events)
         pygame.display.set_caption('IMAGE TO POINTS EDITOR FPS = ' + str(int(self.clock.get_fps())))
 
     def draw_image(self):
@@ -199,6 +209,7 @@ class MainEditor:
         self.display.fill(self.BG_COLOR)
         for i in self.buttons:
             i.draw()
+        self.mode_button.draw()
         if not self.preview:
             self.draw_image()
         self.draw_lines()

@@ -30,11 +30,12 @@ def build_section(z, length, level) -> List[threedee.Line3D]:
 
 
 def build_obstacle(obs, level) -> List[threedee.Line3D]:
-    lines = obs.get_model()
-    return align_shape_to_level_surface(lines, obs.z, obs.z + obs.length, obs.lane, level, obs.should_squeeze())
-    # TODO get real model from obstacle and xform it
-    #return build_rect(obs.z, obs.length, level, obs.lane, level.get_radius(obs.z) / 20, obs.color, 1,
-    #                  with_x=not obs.can_slide_through())
+    return align_shape_to_level_surface(obs.get_model(),
+                                        obs.z,
+                                        obs.z + obs.length,
+                                        obs.lane,
+                                        level,
+                                        obs.should_squeeze())
 
 
 def build_rect(z_start, length, level, lane_n, hover_height, color, width, with_x=False) -> List[threedee.Line3D]:

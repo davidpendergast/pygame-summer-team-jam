@@ -3,6 +3,7 @@ import pygame
 import keybinds
 import rendering.neon as neon
 import config
+import util.profiling as profiling
 
 TARGET_FPS = config.BASE_FPS if not config.TESTMODE else -1
 
@@ -37,6 +38,14 @@ class GameLoop:
                     # collect all the events so we can pass them into the current game mode.
                     events.append(e)
 
+                # global keybinds
+                if e.type == pygame.KEYDOWN:
+                    if e.key in keybinds.TOGGLE_NEON:
+                        config.USE_NEON = not config.USE_NEON
+                        print("INFO: toggling neon to: {}".format(config.USE_NEON))
+                    if e.key in keybinds.TOGGLE_PROFILER:
+                        profiling.get_instance().toggle()
+
             if self.modes[-1].state == 0:
                 self.modes[-1].on_mode_start()
                 self.modes[-1].state = 1
@@ -49,7 +58,8 @@ class GameLoop:
             self.modes[-1].draw_to_screen(self.screen)
             pygame.display.flip()
 
-            if config.TESTMODE:
+            import random
+            if config.TESTMODE and random.random() < 0.01:
                 pygame.display.set_caption(f"TEMPEST RUN {int(self.clock.get_fps())} FPS")
 
 

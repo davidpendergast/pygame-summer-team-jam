@@ -46,17 +46,17 @@ class Obstacle:
             self._cached_3d_model = self.generate_3d_model_at_origin()
         return self._cached_3d_model
 
-    def generate_3d_model_at_origin(self, hover=0.05) -> List[Line3D]:
+    def generate_3d_model_at_origin(self) -> List[Line3D]:
         """Generates the obstacle's 3D model from scratch."""
         return [
             # basic square outline
-            Line3D(Vector3(-1, hover, 1), Vector3(1, hover, 1), color=self.get_color()),
-            Line3D(Vector3(1, hover, 1), Vector3(1, hover, -1), color=self.get_color()),
-            Line3D(Vector3(1, hover, -1), Vector3(-1, hover, -1), color=self.get_color()),
-            Line3D(Vector3(-1, hover, -1), Vector3(-1, hover, 1), color=self.get_color()),
+            Line3D(Vector3(-1, 0, 1), Vector3(1, 0, 1), color=self.get_color()),
+            Line3D(Vector3(1, 0, 1), Vector3(1, 0, -1), color=self.get_color()),
+            Line3D(Vector3(1, 0, -1), Vector3(-1, 0, -1), color=self.get_color()),
+            Line3D(Vector3(-1, 0, -1), Vector3(-1, 0, 1), color=self.get_color()),
             # 'X' through the middle
-            Line3D(Vector3(-1, hover, 1), Vector3(1, hover, -1), color=self.get_color()),
-            Line3D(Vector3(1, hover, 1), Vector3(-1, hover, -1), color=self.get_color())
+            Line3D(Vector3(-1, 0, 1), Vector3(1, 0, -1), color=self.get_color()),
+            Line3D(Vector3(1, 0, 1), Vector3(-1, 0, -1), color=self.get_color())
         ]
 
 
@@ -65,9 +65,9 @@ class Spikes(Obstacle):
     def __init__(self, lane, z, length):
         super().__init__(lane, z, length, neon.RED, True, False)
 
-    def build_3d_model_at_origin(self, level_radius) -> List[Line3D]:
+    def generate_3d_model_at_origin(self) -> List[Line3D]:
         # TODO add cool spiky shapes
-        return super().generate_3d_model_at_origin(level_radius)
+        return super().generate_3d_model_at_origin()
 
 
 class Enemy(Obstacle):
@@ -76,9 +76,20 @@ class Enemy(Obstacle):
     def __init__(self, lane, z, length):
         super().__init__(lane, z, length, neon.LIME, False, True)
 
-    def build_3d_model_at_origin(self, level_radius) -> List[Line3D]:
-        # TODO add some cool enemies
-        return super().generate_3d_model_at_origin(level_radius)
+    def should_squeeze(self):
+        return False
+
+    def generate_3d_model_at_origin(self) -> List[Line3D]:
+        # ooh, scary
+        bot_left = Vector3(-0.5, 0.1, 0)
+        bot_right = Vector3(0.5, 0.1, 0)
+        top_left = Vector3(-0.5, 0.3, 0)
+        top_right = Vector3(0.5, 0.3, 0)
+        outline = Line3D.make_lines_from_list([bot_left, bot_right, top_right, top_left], closed=True, color=self.get_color())
+        left_eye = Line3D(Vector3(-.4, 0.25, 0), Vector3(-.1, 0.2, 0), color=self.get_color())
+        right_eye = Line3D(Vector3(0.4, 0.25, 0), Vector3(.1, 0.2, 0), color=self.get_color())
+        mouth = Line3D(Vector3(-0.4, 0.15, 0), Vector3(0.4, 0.15, 0), color=self.get_color())
+        return outline + [left_eye, right_eye, mouth]
 
 
 class Wall(Obstacle):
@@ -87,9 +98,37 @@ class Wall(Obstacle):
     def __init__(self, lane, z, length):
         super().__init__(lane, z, length, neon.PURPLE, False, False)
 
-    def build_3d_model_at_origin(self, level_radius) -> List[Line3D]:
-        # TODO add a great big wall
-        return super().generate_3d_model_at_origin(level_radius)
+    def generate_3d_model_at_origin(self) -> List[Line3D]:
+        height = 0.5
+
+        # TODO do we want something "truly" 3D? it's a bit weird looking
+        # l1 = Vector3(-1, 0, -1)
+        # l2 = Vector3(-1, 0, 1)
+        # r1 = Vector3(1, 0, -1)
+        # r2 = Vector3(1, 0, 1)
+        #
+        # top_left = Vector3(-1, height, 0)
+        # top_right = Vector3(1, height, 0)
+        #
+        # ground_square = Line3D.make_lines_from_list([l1, l2, r2, r1], closed=True, color=self.get_color())
+        # front_face = Line3D.make_lines_from_list([l1, top_left, top_right, r1], closed=False, color=self.get_color())
+        # extra_lines = [
+        #     Line3D(top_left, l2, color=self.get_color()),
+        #     Line3D(top_right, r2, color=self.get_color()),
+        #     Line3D(l1, top_right, color=self.get_color()),
+        #     Line3D(r1, top_left, color=self.get_color())
+        # ]
+        #
+        # return ground_square + front_face + extra_lines
+
+        l1 = Vector3(-1, 0, 0)
+        l2 = Vector3(-1, height, 0)
+        r1 = Vector3(1, 0, 0)
+        r2 = Vector3(1, height, 0)
+
+        return Line3D.make_lines_from_list([l1, l2, r2, r1], closed=True, color=self.get_color()) + \
+            [Line3D(l1, r2, color=self.get_color()),
+             Line3D(l2, r1, color=self.get_color())]
 
 
 class Level:

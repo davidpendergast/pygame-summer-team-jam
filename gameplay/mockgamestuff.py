@@ -30,7 +30,12 @@ class MockGameplayMode(main.GameMode):
 
         self.camera.position.z = self.z + self.camera_z_offset
 
+        for event in events:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                self.state = -1
+
     def draw_to_screen(self, screen):
+        screen.fill((0, 0, 0))
         all_lines = []
         z_i = self.z // self.section_length
         for i in range(self.foresight):

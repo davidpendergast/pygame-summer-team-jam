@@ -1,13 +1,17 @@
 import pygame
-import time
 
 import keybinds
 import rendering.neon as neon
+import config
 
-TARGET_FPS = 60
+
+# TESTMODE flag
+TESTMODE = config.TESTMODE
+
+TARGET_FPS = config.BASE_FPS if not TESTMODE else -1
 
 # this is only the default size, use pygame.display.get_surface().get_size() to get the current size.
-W, H = (600, 300)
+W, H = config.DISP_WID, config.DISP_HEI
 
 
 class GameLoop:
@@ -15,14 +19,13 @@ class GameLoop:
     def __init__(self):
         self.running = True
         self.clock = pygame.time.Clock()
-        self.current_mode: GameMode = MainMenuMode(self)
-        self.next_mode = None
+        self.screen = pygame.display.get_surface()
+        self.modes = [MainMenuMode(self)]
 
     def set_next_mode(self, next_mode):
-        self.next_mode = next_mode
+        self.modes.append(next_mode)
 
     def start(self):
-        last_tick_time_secs = time.time()
 
         while self.running:
             events = []
@@ -35,28 +38,27 @@ class GameLoop:
                     # collect all the events so we can pass them into the current game mode.
                     events.append(e)
 
-            if self.next_mode is not None:
-                self.current_mode.on_mode_end()
-                self.current_mode = self.next_mode
-                self.current_mode.on_mode_start()
+            if self.modes[-1].state == 0:
+                self.modes[-1].on_mode_start()
+                self.modes[-1].state = 1
+            elif self.modes[-1].state == -1:
+                self.modes[-1].on_mode_end()
+                self.modes.pop()
 
-            cur_time = time.time()
-            dt = cur_time - last_tick_time_secs
-
-            self.current_mode.update(dt, events)
-            last_tick_time_secs = cur_time
-
-            screen = pygame.display.get_surface()
-            screen.fill((0, 0, 0))
-            self.current_mode.draw_to_screen(screen)
-
+            dt = self.clock.tick(TARGET_FPS)/1000.0
+            self.modes[-1].update(dt, events)
+            self.modes[-1].draw_to_screen(self.screen)
             pygame.display.flip()
+
+            if TESTMODE:
+                pygame.display.set_caption(f"TEMPEST RUN {int(self.clock.get_fps())} FPS")
 
 
 class GameMode:
 
     def __init__(self, loop: GameLoop):
         self.loop: GameLoop = loop
+        self.state = 0
 
     def on_mode_start(self):
         """Called when mode becomes active"""
@@ -77,7 +79,7 @@ class MainMenuMode(GameMode):
 
     def __init__(self, loop: GameLoop):
         super().__init__(loop)
-
+        self.song = pygame
         self.selected_option_idx = 0
         self.options = [
             ("start", lambda: self.start_pressed()),
@@ -86,8 +88,8 @@ class MainMenuMode(GameMode):
             ("exit", lambda: self.exit_pressed())
         ]
 
-        self.title_font = pygame.font.Font(pygame.font.get_default_font(), 36)
-        self.option_font = pygame.font.Font(pygame.font.get_default_font(), 24)
+        self.title_font = pygame.font.Font("assets/fonts/CONSOLA.TTF", config.TITLE_SIZE)
+        self.option_font = pygame.font.Font("assets/fonts/CONSOLA.TTF", config.OPTION_SIZE)
 
     def on_mode_start(self):
         # TODO song
@@ -124,9 +126,10 @@ class MainMenuMode(GameMode):
                     self.exit_pressed()
                     return
 
-    def draw_to_screen(self, screen):
+    def draw_to_screen(self, screen: pygame.Surface):
+        screen.fill((0, 0, 0))
         screen_size = screen.get_size()
-        title_surface = self.title_font.render('Tempest Run', True, neon.WHITE)
+        title_surface = self.title_font.render('TEMPEST RUN', True, neon.WHITE)
 
         title_size = title_surface.get_size()
         title_y = screen_size[1] // 3 - title_size[1] // 2
@@ -148,6 +151,6 @@ class MainMenuMode(GameMode):
 if __name__ == "__main__":
     pygame.init()
     pygame.display.set_mode((W, H), pygame.SCALED | pygame.RESIZABLE)
-
+    pygame.display.set_caption("TEMPEST RUN")
     loop = GameLoop()
     loop.start()

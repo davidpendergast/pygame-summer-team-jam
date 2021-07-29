@@ -62,27 +62,10 @@ class Player:
         if not self.is_jumping():
             self.set_mode('slide')
 
-    def handle_events(self, events):
-        if events is None:
-            return
-        for e in events:
-            if e.type == pygame.KEYDOWN:
-                if e.key in keybinds.JUMP:
-                    self.jump()
-                if e.key in keybinds.LEFT:
-                    self.move_left()
-                if e.key in keybinds.RIGHT:
-                    self.move_right()
-                if e.key in keybinds.SLIDE:
-                    self.slide()
-            if e.type == pygame.KEYUP:
-                if e.key in keybinds.SLIDE:
-                    self.set_mode('run')
-
     def set_speed(self, speed):
         self.speed = speed
 
-    def update(self, dt, events=None):
+    def update(self, dt):
         self.y += self.dy * dt
         if self.y > 0:
             self.dy -= 25 * dt
@@ -92,7 +75,6 @@ class Player:
             if not self.is_sliding():
                 self.set_mode('run')
         self.move_forward(dt)
-        self.handle_events(events)
 
     def draw(self, display):
         # draw info to display

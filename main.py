@@ -100,7 +100,7 @@ class MainMenuMode(GameMode):
 
     def help_pressed(self):
         import menus.help_menu as help_menu
-        self.loop.set_next_mode(help_menu.HelpMenuMode(loop))
+        self.loop.set_next_mode(help_menu.HelpMenuMode(self.loop))
 
     def credits_pressed(self):
         # TODO add credits menu

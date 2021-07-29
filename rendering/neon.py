@@ -47,6 +47,9 @@ class NeonLine:
 
 
 class NeonRenderer:
+    """
+    A class that renders lines with a cool neon effect.
+    """
 
     def __init__(self,
                  ambient_bloom_kernel=(15, 15),
@@ -55,17 +58,22 @@ class NeonRenderer:
         self.ambient_bloom_kernel = ambient_bloom_kernel
         self.mid_tone_bloom_kernel = mid_tone_bloom_kernel
         self.highlight_bloom_kernel = highlight_bloom_kernel
-        self.darkness_factor = 0.9
+        self.darkness_factor = 1  # this is pretty krangled now, off by default~
 
-        # enabled
         self._enabled = True
 
-        self._buf = None
+        self._buf = None  # a buffer for intermediate drawing operations
 
     def set_enabled(self, val):
+        """If false, this will use pygame.draw.line to draw lines, instead of the neon stuff."""
         self._enabled = val
 
-    def draw_lines(self, surface: pygame.Surface, lines: Iterable[NeonLine], bg_color=BLACK, extra_darkness_factor=1):
+    def draw_lines(self, surface: pygame.Surface, lines: Iterable[NeonLine], extra_darkness_factor=1):
+        """Draws lines with a fancy neon effect.
+        :param surface: the surface to draw them onto
+        :param lines: the lines to draw
+        :param extra_darkness_factor: a value from 0 to 1 that will control the 'extra darkness' of the lines (0 being completely dark).
+        """
         if not self._enabled:
             for line in lines:
                 pygame.draw.lines(surface, line.color, False, line.vector_points, width=line.width)
@@ -73,40 +81,49 @@ class NeonRenderer:
 
         if self._buf is None or (self._buf.shape[0], self._buf.shape[1]) != surface.get_size():
             self._buf = pygame.surfarray.array3d(surface)
-        array = self._buf
+
         # fill screen with black
-        array[...] = 0
+        self._buf[...] = 0
 
         # Ghast's Neon Line Drawing AlgorithmTM
 
         # 1st pass, draw large, dark, faint glow around line
         for line in lines:
-            self.polylines(array, [line.np_points], False, line.color.lerp((0, 0, 0), 0.15), line.width)
-        self._blur(array, self.ambient_bloom_kernel)
+            self.polylines(self._buf, [line.np_points], False, line.color.lerp((0, 0, 0), 0.15), line.width)
+        self._blur(self._buf, self.ambient_bloom_kernel)
 
         # 2nd pass, draw smaller, brighter glow
         for line in lines:
-            self.polylines(array, [line.np_points], False, line.color, line.inner_width)
-        self._blur(array, self.mid_tone_bloom_kernel)
+            self.polylines(self._buf, [line.np_points], False, line.color, line.inner_width)
+        self._blur(self._buf, self.mid_tone_bloom_kernel)
 
         # 3rd pass, draw anti-aliased highlight
         for line in lines:
-            self.polylines(array, [line.np_points], False, line.inner_color.lerp((255, 255, 255), 0.7), line.inner_width, lineType=cv2.LINE_AA)
-        self._blur(array, self.highlight_bloom_kernel)
+            self.polylines(self._buf, [line.np_points], False, line.inner_color.lerp((255, 255, 255), 0.7), line.inner_width, lineType=cv2.LINE_AA)
+        self._blur(self._buf, self.highlight_bloom_kernel)
 
         # post processing effects
-        self._darken(array, self.darkness_factor * extra_darkness_factor)
+        self._darken(self._buf, self.darkness_factor * extra_darkness_factor)
 
-        pygame.surfarray.blit_array(surface, array)
+        pygame.surfarray.blit_array(surface, self._buf)
 
     def polylines(self, array, pts, connected, color, width, lineType=cv2.LINE_4):
+        """calls cv2.polylines with the given params.
+        The only reason this method is split off like this is to make things easier to profile.
+        """
         cv2.polylines(array, pts, connected, color, width, lineType=lineType)
 
     def _blur(self, array, kernel):
+        """blurs the image using cv2.blur
+        The only reason this method is split off like this is to make things easier to profile.
+        """
         if kernel is not None:
             cv2.blur(array, kernel, dst=array)
 
     def _darken(self, array, darkness_factor):
+        """darkens the image
+        :param darkness_factor: a value from 0 to 1 that determines how dark it will be
+        """
         if darkness_factor < 1:
             # apparently multiplying by a float is too expensive (ask bydario~)
             denominator = 100

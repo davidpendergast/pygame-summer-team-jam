@@ -55,6 +55,7 @@ class NeonRenderer:
         self.ambient_bloom_kernel = ambient_bloom_kernel
         self.mid_tone_bloom_kernel = mid_tone_bloom_kernel
         self.highlight_bloom_kernel = highlight_bloom_kernel
+        self.darkness_factor = 0.9
 
         # enabled
         self._enabled = True
@@ -64,7 +65,7 @@ class NeonRenderer:
     def set_enabled(self, val):
         self._enabled = val
 
-    def draw_lines(self, surface: pygame.Surface, lines: Iterable[NeonLine], bg_color=BLACK):
+    def draw_lines(self, surface: pygame.Surface, lines: Iterable[NeonLine], bg_color=BLACK, extra_darkness_factor=1):
         if not self._enabled:
             for line in lines:
                 pygame.draw.lines(surface, line.color, False, line.vector_points, width=line.width)
@@ -94,7 +95,7 @@ class NeonRenderer:
         self._blur(array, self.highlight_bloom_kernel)
 
         # post processing effects
-        self._darken(array)
+        self._darken(array, self.darkness_factor * extra_darkness_factor)
 
         pygame.surfarray.blit_array(surface, array)
 
@@ -105,8 +106,12 @@ class NeonRenderer:
         if kernel is not None:
             cv2.blur(array, kernel, dst=array)
 
-    def _darken(self, array):
-        array[...] = array // 10 * 9
+    def _darken(self, array, darkness_factor):
+        if darkness_factor < 1:
+            # apparently multiplying by a float is too expensive (ask bydario~)
+            denominator = 100
+            numerator = int(darkness_factor * denominator)
+            array[...] = array // denominator * numerator
 
 
 if __name__ == "__main__":

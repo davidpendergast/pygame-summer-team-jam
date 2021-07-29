@@ -29,6 +29,16 @@ def resource_path(relative_path):
     return os.path.join(base_path, str(pathlib.Path(relative_path)))
 
 
+def lerp(a, v1, v2):
+    """Linearly interpolates between v1 and v2 based on a's value (from 0 to 1)"""
+    if a <= 0:
+        return v1
+    elif a >= 1:
+        return v2
+    else:
+        return a * (v2 - v1) + v1
+
+
 class SpriteSheet:
     def __init__(self, img_file_name: Union[str, pygame.Surface], sprite_qty, row, col, color_key=None, flipped=False, scale_factor=1):
         self.scale_factor = scale_factor

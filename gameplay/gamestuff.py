@@ -8,6 +8,7 @@ import rendering.neon as neon
 import rendering.threedee as threedee
 import rendering.levelbuilder3d as levelbuilder3d
 import keybinds
+import util.utility_functions as utility_functions
 
 
 class GameplayMode(main.GameMode):
@@ -54,7 +55,7 @@ class GameplayMode(main.GameMode):
                 if e.key in keybinds.SLIDE:
                     self.player.set_mode('run')
 
-    def draw_to_screen(self, screen):
+    def draw_to_screen(self, screen, extra_darkness_factor=1):
         screen.fill((0, 0, 0))
         all_lines = []
         cell_length = self.current_level.get_cell_length()
@@ -77,7 +78,7 @@ class GameplayMode(main.GameMode):
         all_2d_lines = self.camera.project_to_surface(screen, all_lines)
         neon_lines = neon.NeonLine.convert_line2ds_to_neon_lines(all_2d_lines)
 
-        self.neon_renderer.draw_lines(screen, neon_lines)
+        self.neon_renderer.draw_lines(screen, neon_lines, extra_darkness_factor=extra_darkness_factor)
 
 
 class PauseMenu(main.GameMode):
@@ -92,7 +93,10 @@ class PauseMenu(main.GameMode):
         self.title_font = pygame.font.Font("assets/fonts/CONSOLA.TTF", config.TITLE_SIZE)
         self.option_font = pygame.font.Font("assets/fonts/CONSOLA.TTF", config.OPTION_SIZE)
 
+        self.pause_timer = 0  # how long we've been paused
+
     def update(self, dt, events):
+        self.pause_timer += dt
         for e in events:
             if e.type == pygame.KEYDOWN:
                 if e.key in keybinds.MENU_UP:
@@ -112,9 +116,17 @@ class PauseMenu(main.GameMode):
         self.state = -1
 
     def exit_pressed(self):
-        del self.loop.modes[-2:]
+        import main
+        self.loop.set_next_mode(main.MainMenuMode(self.loop))
 
     def draw_to_screen(self, screen):
+        # make the level underneath fade darker slightly after you've paused
+        max_darkness = 0.333
+        max_darkness_time = 0.1  # second
+        current_darkness = utility_functions.lerp(self.pause_timer / max_darkness_time, 1, max_darkness)
+
+        self.loop.modes[-2].draw_to_screen(screen, extra_darkness_factor=current_darkness)  # drawing level underneath this menu
+
         screen_size = screen.get_size()
         title_surface = self.title_font.render('PAUSE', True, neon.WHITE)
 

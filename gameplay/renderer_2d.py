@@ -29,6 +29,7 @@ class Level:
 
 
 class Renderer:
+
     def __init__(self, display: pygame.Surface, level: Level):
         self.display = display
         self.level = level

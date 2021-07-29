@@ -1,5 +1,6 @@
 import pygame
 import keybinds
+from typing import List
 
 import util.utility_functions as utility_functions
 
@@ -37,18 +38,19 @@ class Player:
         # TODO feels pretty bad to not let you move while jumping, might want to change this
         if not self.is_jumping():
             self.lane -= 1
-            self.lane %= 6
 
     def move_right(self):
         # cannot switch lanes while jumping
         # TODO feels pretty bad to not let you move while jumping, might want to change this
         if not self.is_jumping():
             self.lane += 1
-            self.lane %= 6
 
     def move_forward(self, dt):
         # supposed to happen per frame
         self.z += self.speed * dt
+
+    def get_lane(self, total_lanes):
+        return self.lane % total_lanes
 
     def run(self):
         self.set_mode('run')
@@ -57,6 +59,9 @@ class Player:
         if not self.is_jumping():
             self.set_mode('jump')
             self.dy = 10
+
+    def max_jump_height(self):
+        return 2.5  # TODO calulate this for real
 
     def slide(self):
         if not self.is_jumping():
@@ -86,3 +91,5 @@ class Player:
         # print(self.collided)
         if self.collided:
             utility_functions.Text(display, 'COLLIDED', 550, 100, 25).draw()
+
+

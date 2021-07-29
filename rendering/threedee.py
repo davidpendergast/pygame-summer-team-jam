@@ -20,6 +20,17 @@ class Line3D:
     def __repr__(self):
         return "{}(p1={}, p2={}, color={}, width={})".format(type(self).__name__, self.p1, self.p2, self.color, self.width)
 
+    @staticmethod
+    def make_lines_from_list(list_of_vec3s: List[Vector3], closed=False, color=neon.WHITE, width=1) -> List['Line3D']:
+        res = []
+        for i in range(len(list_of_vec3s)):
+            p1 = list_of_vec3s[i]
+            p2 = list_of_vec3s[(i + 1) % len(list_of_vec3s)]
+            res.append(Line3D(p1, p2, color=color, width=width))
+        if not closed:
+            res.pop(-1)
+        return res
+
 
 class Line2D:
 

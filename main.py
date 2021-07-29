@@ -58,8 +58,7 @@ class GameLoop:
             self.modes[-1].draw_to_screen(self.screen)
             pygame.display.flip()
 
-            import random
-            if config.TESTMODE and random.random() < 0.01:
+            if config.TESTMODE:
                 pygame.display.set_caption(f"TEMPEST RUN {int(self.clock.get_fps())} FPS")
 
 

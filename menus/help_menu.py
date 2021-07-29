@@ -6,6 +6,7 @@ import pygame
 import rendering.neon as neon
 import keybinds
 from main import GameMode, GameLoop
+import config
 
 
 class HelpMenuMode(GameMode):
@@ -20,10 +21,19 @@ class HelpMenuMode(GameMode):
             ("sounds", None),
             ("back", None)
         ]
-        self.squares = [[random.randint(0, 600), 300, random.randint(0, 360), random.randint(2, 10) / 2 * random.choice([-1, 1])] for _ in range(25)]  # format -> [x, y, angle, speed]
+
+        self.n_squares = 25
+        self.squares = [self._generate_square() for _ in range(self.n_squares)]  # format -> [x, y, angle, speed]
 
         self.title_font = pygame.font.Font(pygame.font.get_default_font(), 36)
         self.option_font = pygame.font.Font(pygame.font.get_default_font(), 24)
+
+    def _generate_square(self):
+        screen_w, screen_h = pygame.display.get_surface().get_size()
+        return [random.randint(0, screen_w),  # x position
+                screen_h + 25,                # y position
+                random.randint(0, 360),       # angle
+                random.randint(2, 10) / 2 * random.choice([-1, 1])]  # speed
 
     @staticmethod
     def get_square_points(x, y, angle, size=50):
@@ -43,16 +53,17 @@ class HelpMenuMode(GameMode):
         pass
 
     def exit_pressed(self):
-        self.loop.running = False
+        self.loop.pop_current_mode()
 
     def update(self, dt, events):
         for i in self.squares:
             i[2] += i[3]
             i[1] -= abs(i[3])
-            if i[1] < -50:
-                i[1] = 350
-                i[0] = random.randint(0, 600)
-                i[3] = random.randint(2, 10) / 2 * random.choice([-1, 1])
+        self.squares = [s for s in self.squares if s[1] > -50]  # purge squares that fell off the top of the screen
+
+        while len(self.squares) < self.n_squares:
+            self.squares.append(self._generate_square())
+
         for e in events:
             if e.type == pygame.KEYDOWN:
                 if e.key in keybinds.LEFT:
@@ -66,6 +77,8 @@ class HelpMenuMode(GameMode):
                     return
 
     def draw_to_screen(self, screen):
+        screen.fill((0, 0, 0))
+
         for i in self.squares:
             pygame.draw.lines(screen, (0, 255, 0), True, self.get_square_points(i[0], i[1], i[2]))
         screen_size = screen.get_size()

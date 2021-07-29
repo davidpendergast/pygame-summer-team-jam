@@ -1,5 +1,5 @@
 import math
-from typing import Union
+from typing import Union, List
 import pygame
 import time
 import sys, os, pathlib
@@ -27,6 +27,28 @@ def resource_path(relative_path):
         base_path = os.path.abspath(".")
 
     return os.path.join(base_path, str(pathlib.Path(relative_path)))
+
+
+def lerp(a: float, v1, v2, restrict_between=True):
+    """Linearly interpolates between v1 and v2 based on a's value (from 0 to 1)
+
+    example: a=0.75, v1=0, v2=4 --> 3.0
+    """
+    if a <= 0 and restrict_between:
+        return v1
+    elif a >= 1 and restrict_between:
+        return v2
+    else:
+        return a * (v2 - v1) + v1
+
+
+def map_from_interval_to_interval(val: float, interval1: List[float], interval2: List[float]):
+    """Linearly maps a value from one interval to another
+
+    example: val=2, interval1=[0, 4], interval2=[0, 10] -> 5
+    """
+    a = (val - interval1[0]) / (interval1[1] - interval1[0])
+    return lerp(a, interval2[0], interval2[1], restrict_between=False)
 
 
 class SpriteSheet:

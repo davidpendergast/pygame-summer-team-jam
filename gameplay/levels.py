@@ -21,11 +21,14 @@ class Obstacle:
         self._can_slide_through = can_slide_through
 
         # used to avoid recreating the 3D model every frame
-        # will be a tuple(level_radius, List[Line3D]) if present
+        # will be a List[Line3D] if present
         self._cached_3d_model = None
 
     def get_color(self):
         return self.color
+
+    def should_squeeze(self):
+        return True
 
     def can_jump_over(self):
         return self._can_jump
@@ -33,27 +36,27 @@ class Obstacle:
     def can_slide_through(self):
         return self._can_slide_through
 
-    def get_model(self, level_radius) -> List[Line3D]:
+    def get_model(self) -> List[Line3D]:
         """
         :return: a 3D representation of the obstacle, as if its corners were at:
             [(-1, 1, 0), (1, 1, 0), (1, -1, 0), (-1, -1, 0)],
             and facing upwards in the z-axis.
         """
-        if self._cached_3d_model is None or self._cached_3d_model[0] != level_radius:
-            self._cached_3d_model = (level_radius, self.generate_3d_model_at_origin(level_radius))
-        return self._cached_3d_model[1]
+        if self._cached_3d_model is None:
+            self._cached_3d_model = self.generate_3d_model_at_origin()
+        return self._cached_3d_model
 
-    def generate_3d_model_at_origin(self, level_radius) -> List[Line3D]:
+    def generate_3d_model_at_origin(self, hover=0.05) -> List[Line3D]:
         """Generates the obstacle's 3D model from scratch."""
         return [
             # basic square outline
-            Line3D(Vector3(-1, 1, 0), Vector3(1, 1, 0), color=self.get_color()),
-            Line3D(Vector3(1, 1, 0), Vector3(1, -1, 0), color=self.get_color()),
-            Line3D(Vector3(1, -1, 0), Vector3(-1, -1, 0), color=self.get_color()),
-            Line3D(Vector3(-1, -1, 0), Vector3(-1, 1, 0), color=self.get_color()),
+            Line3D(Vector3(-1, hover, 1), Vector3(1, hover, 1), color=self.get_color()),
+            Line3D(Vector3(1, hover, 1), Vector3(1, hover, -1), color=self.get_color()),
+            Line3D(Vector3(1, hover, -1), Vector3(-1, hover, -1), color=self.get_color()),
+            Line3D(Vector3(-1, hover, -1), Vector3(-1, hover, 1), color=self.get_color()),
             # 'X' through the middle
-            Line3D(Vector3(-1, 1, 0), Vector3(1, -1, 0), color=self.get_color()),
-            Line3D(Vector3(1, 1, 0), Vector3(-1, -1, 0), color=self.get_color())
+            Line3D(Vector3(-1, hover, 1), Vector3(1, hover, -1), color=self.get_color()),
+            Line3D(Vector3(1, hover, 1), Vector3(-1, hover, -1), color=self.get_color())
         ]
 
 

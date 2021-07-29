@@ -8,6 +8,9 @@ import rendering.neon as neon
 import rendering.threedee as threedee
 import rendering.levelbuilder3d as levelbuilder3d
 import keybinds
+import util.utility_functions as utility_functions
+import config
+import util.profiling as profiling
 
 
 class GameplayMode(main.GameMode):
@@ -18,8 +21,8 @@ class GameplayMode(main.GameMode):
         self.current_level = levels.InfiniteGeneratingLevel(9)
 
         self.camera = threedee.Camera3D()
-        self.camera.position.y = -3
-        self.camera_z_offset = -20
+        self.camera.position.y = -1
+        self.camera_z_offset = -40
         self.unload_offset = -30
 
         self.foresight = 150
@@ -50,34 +53,39 @@ class GameplayMode(main.GameMode):
                     self.player.slide()
                 if e.key == pygame.K_ESCAPE:
                     self.loop.set_next_mode(PauseMenu(self.loop))
+                if config.TESTMODE and e.key == pygame.K_F1:
+                    profiling.get_instance().toggle()
             if e.type == pygame.KEYUP:
                 if e.key in keybinds.SLIDE:
                     self.player.set_mode('run')
 
-    def draw_to_screen(self, screen):
+    def draw_to_screen(self, screen, extra_darkness_factor=1):
         screen.fill((0, 0, 0))
         all_lines = []
         cell_length = self.current_level.get_cell_length()
         z = self.camera.position.z
         n_lanes = self.current_level.number_of_lanes()
-        radius = self.current_level.get_radius(z)
-        rotation = self.current_level.get_rotation(z)
         cell_start = int(z / cell_length)
         cell_end = int((z + self.foresight) / cell_length + 1)
 
         for i in range(cell_start, cell_end):
-            all_lines.extend(levelbuilder3d.build_section(i * cell_length, cell_length, n_lanes, radius, 0))
+            all_lines.extend(levelbuilder3d.build_section(i * cell_length, cell_length, self.current_level))
 
+        n_obstacles = 0
         for n in range(n_lanes):
             obstacles = self.current_level.get_all_obstacles_between(n, z, z + self.foresight)
             for obs in reversed(obstacles):
                 # add them from from back to front so they overlap properly
-                all_lines.extend(levelbuilder3d.build_obstacle(obs, n_lanes, radius, rotation))
+                all_lines.extend(levelbuilder3d.build_obstacle(obs, self.current_level))
+            n_obstacles += len(obstacles)
+        print("n obstacles = {}".format(n_obstacles))
+
+        all_lines.extend(levelbuilder3d.get_player_shape(self.player, self.current_level))
 
         all_2d_lines = self.camera.project_to_surface(screen, all_lines)
         neon_lines = neon.NeonLine.convert_line2ds_to_neon_lines(all_2d_lines)
 
-        self.neon_renderer.draw_lines(screen, neon_lines)
+        self.neon_renderer.draw_lines(screen, neon_lines, extra_darkness_factor=extra_darkness_factor)
 
 
 class PauseMenu(main.GameMode):
@@ -92,7 +100,10 @@ class PauseMenu(main.GameMode):
         self.title_font = pygame.font.Font("assets/fonts/CONSOLA.TTF", config.TITLE_SIZE)
         self.option_font = pygame.font.Font("assets/fonts/CONSOLA.TTF", config.OPTION_SIZE)
 
+        self.pause_timer = 0  # how long we've been paused
+
     def update(self, dt, events):
+        self.pause_timer += dt
         for e in events:
             if e.type == pygame.KEYDOWN:
                 if e.key in keybinds.MENU_UP:
@@ -112,9 +123,18 @@ class PauseMenu(main.GameMode):
         self.state = -1
 
     def exit_pressed(self):
-        del self.loop.modes[-2:]
+        import main
+        self.loop.set_next_mode(main.MainMenuMode(self.loop))
 
     def draw_to_screen(self, screen):
+        # make the level underneath fade darker slightly after you've paused
+        max_darkness = 0.333
+        max_darkness_time = 0.1  # second
+        current_darkness = utility_functions.lerp(self.pause_timer / max_darkness_time, 1, max_darkness)
+
+        # drawing level underneath this menu
+        self.loop.modes[-2].draw_to_screen(screen, extra_darkness_factor=current_darkness)
+
         screen_size = screen.get_size()
         title_surface = self.title_font.render('PAUSE', True, neon.WHITE)
 

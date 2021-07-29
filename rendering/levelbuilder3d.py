@@ -30,10 +30,11 @@ def build_section(z, length, level) -> List[threedee.Line3D]:
 
 
 def build_obstacle(obs, level) -> List[threedee.Line3D]:
-    radius = level.get_radius(obs.z)
+    lines = obs.get_model()
+    return align_shape_to_level_surface(lines, obs.z, obs.z + obs.length, obs.lane, level, obs.should_squeeze())
     # TODO get real model from obstacle and xform it
-    return build_rect(obs.z, obs.length, level, obs.lane, radius / 20, obs.color, 1,
-                      with_x=not obs.can_slide_through())
+    #return build_rect(obs.z, obs.length, level, obs.lane, level.get_radius(obs.z) / 20, obs.color, 1,
+    #                  with_x=not obs.can_slide_through())
 
 
 def build_rect(z_start, length, level, lane_n, hover_height, color, width, with_x=False) -> List[threedee.Line3D]:
@@ -73,10 +74,10 @@ def get_player_shape_at_origin(player) -> List[threedee.Line3D]:
     height = 0.4 if not player.is_sliding() else 0.2
     dist_from_ground = 0.3 * player.y / player.max_jump_height()
     color = neon.YELLOW if not player.is_dead() else neon.RED
-    top_left = Vector3(-width / 2, height + dist_from_ground, 0)
-    top_right = Vector3(width / 2, height + dist_from_ground, 0)
-    bot_left = Vector3(-width / 2, dist_from_ground, 0)
-    bot_right = Vector3(width / 2, dist_from_ground, 0)
+    top_left = Vector3(-width / 2.0, height + dist_from_ground, 0)
+    top_right = Vector3(width / 2.0, height + dist_from_ground, 0)
+    bot_left = Vector3(-width / 2.0, dist_from_ground, 0)
+    bot_right = Vector3(width / 2.0, dist_from_ground, 0)
 
     return [threedee.Line3D(top_left, top_right, color=color, width=2),
             threedee.Line3D(top_right, bot_right, color=color, width=2),
@@ -123,10 +124,6 @@ def align_shape_to_level_surface(lines_to_xform: List[threedee.Line3D], z_start:
 
     res = []
 
-    # if True:
-    #     res.extend(threedee.Line3D.make_lines_from_list([near_left, near_right, near_top], closed=True, color=neon.ORANGE))
-    #     res.extend(threedee.Line3D.make_lines_from_list([far_left, far_right, far_top], closed=True, color=neon.PURPLE))
-
     def convert_pt(pt):
         z_factor = utility_functions.map_from_interval_to_interval(pt.z, [-1, 1], [0, 1])
         vert_factor = pt.y
@@ -137,14 +134,11 @@ def align_shape_to_level_surface(lines_to_xform: List[threedee.Line3D], z_start:
             far_pt = far_left + horz_factor * (far_right - far_left) + vert_factor * (far_top - far_bottom)
             return utility_functions.lerp(z_factor, near_pt, far_pt)
         else:
-            return None  # TODO
-
-    # for l in lines_to_xform:
-    #     new_p2 = l.p2 + Vector3(0, 0, z_start)
-    #     res.append(threedee.Line3D(new_p1, new_p2, color=l.color, width=l.width))
+            near_pt = utility_functions.lerp(vert_factor, near_left + horz_factor * (near_right - near_left), near_top)
+            far_pt = utility_functions.lerp(vert_factor, far_left + horz_factor * (far_right - far_left), far_top)
+            return utility_functions.lerp(z_factor, near_pt, far_pt)
 
     for l in lines_to_xform:
-        # new_p1 = l.p1 + Vector3(0, 0, z_start)
         new_p1 = convert_pt(l.p1)
         new_p2 = convert_pt(l.p2)
         res.append(threedee.Line3D(new_p1, new_p2, color=l.color, width=l.width))

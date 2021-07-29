@@ -29,7 +29,7 @@ def resource_path(relative_path):
     return os.path.join(base_path, str(pathlib.Path(relative_path)))
 
 
-def lerp(a: float, v1: float, v2: float, restrict_between=True):
+def lerp(a: float, v1, v2, restrict_between=True):
     """Linearly interpolates between v1 and v2 based on a's value (from 0 to 1)
 
     example: a=0.75, v1=0, v2=4 --> 3.0

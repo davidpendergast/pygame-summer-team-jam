@@ -4,11 +4,7 @@ import keybinds
 import rendering.neon as neon
 import config
 
-
-# TESTMODE flag
-TESTMODE = config.TESTMODE
-
-TARGET_FPS = config.BASE_FPS if not TESTMODE else -1
+TARGET_FPS = config.BASE_FPS if not config.TESTMODE else -1
 
 # this is only the default size, use pygame.display.get_surface().get_size() to get the current size.
 W, H = config.DISP_WID, config.DISP_HEI
@@ -24,6 +20,9 @@ class GameLoop:
 
     def set_next_mode(self, next_mode):
         self.modes.append(next_mode)
+
+    def pop_current_mode(self):
+        self.modes.pop(-1)
 
     def start(self):
 
@@ -50,7 +49,7 @@ class GameLoop:
             self.modes[-1].draw_to_screen(self.screen)
             pygame.display.flip()
 
-            if TESTMODE:
+            if config.TESTMODE:
                 pygame.display.set_caption(f"TEMPEST RUN {int(self.clock.get_fps())} FPS")
 
 
@@ -100,8 +99,8 @@ class MainMenuMode(GameMode):
         self.loop.set_next_mode(gameplay.gamestuff.GameplayMode(self.loop))
 
     def help_pressed(self):
-        import gameplay.mockgamestuff
-        self.loop.set_next_mode(gameplay.mockgamestuff.MockGameplayMode(self.loop))
+        import menus.help_menu as help_menu
+        self.loop.set_next_mode(help_menu.HelpMenuMode(loop))
 
     def credits_pressed(self):
         # TODO add credits menu

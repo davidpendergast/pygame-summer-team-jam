@@ -29,6 +29,9 @@ class GameplayMode(main.GameMode):
         self.foresight = 150
         self.neon_renderer = neon.NeonRenderer()
 
+    def on_mode_start(self):
+        SoundManager.play_song('game_theme', fadeout_ms=250, fadein_ms=1000)
+
     def update(self, dt, events):
         self.handle_events(events)
         self.player.update(dt, self.current_level, events)
@@ -76,6 +79,7 @@ class GameplayMode(main.GameMode):
 
 
 class PauseMenu(main.GameMode):
+
     def __init__(self, loop, gameplay_mode: GameplayMode):
         super().__init__(loop)
         self.selected_option_idx = 0
@@ -92,6 +96,10 @@ class PauseMenu(main.GameMode):
 
     def on_mode_start(self):
         SoundManager.play('blip2')
+        SoundManager.set_song_volume_multiplier(0.5)
+
+    def on_mode_end(self):
+        SoundManager.set_song_volume_multiplier(1.0)
 
     def update(self, dt, events):
         self.pause_timer += dt
@@ -164,6 +172,13 @@ class RetryMenu(main.GameMode):
         self.info_font = fonts.get_font(config.INFO_SIZE)
 
         self.pause_timer = 0  # how long we've been paused
+
+    def on_mode_start(self):
+        SoundManager.play('blip2')
+        SoundManager.set_song_volume_multiplier(0.5)
+
+    def on_mode_end(self):
+        SoundManager.set_song_volume_multiplier(1.0)
 
     def update(self, dt, events):
         self.pause_timer += dt

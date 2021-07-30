@@ -9,6 +9,8 @@ import os
 import traceback
 import config
 import random
+import threading
+import time
 
 
 class SoundManager:
@@ -30,6 +32,16 @@ class SoundManager:
 
     CURRENT_SOUND_ID: str = None
     CHANNEL: pygame.mixer.Channel = None
+
+    SONG_PATHS = {
+        "menu_theme": "assets/songs/menu_theme.ogg",
+        "game_theme": "assets/songs/game_theme.ogg"
+    }
+    CURRENT_SONG_ID: str = None
+    IS_FADING = False
+    NEXT_SONG_AFTER_FADEOUT = None
+    FADEOUT_LOCK = threading.Lock()
+    SONG_VOLUME_MULTIPLIER = 1.0
 
     @classmethod
     def init(cls):
@@ -80,6 +92,84 @@ class SoundManager:
     def stop(cls):
         if cls.CHANNEL.get_busy():
             cls.CHANNEL.stop()
+
+    @classmethod
+    def set_song_volume_multiplier(cls, mult):
+        cls.SONG_VOLUME_MULTIPLIER = mult
+        pygame.mixer.music.set_volume(cls.get_song_volume())
+
+    @classmethod
+    def get_song_volume(cls):
+        return max(0, min(1, cls.SONG_VOLUME_MULTIPLIER * config.MASTER_VOLUME * config.MUSIC_VOLUME))
+
+    @classmethod
+    def play_song(cls, song_id, fadeout_ms=1000, fadein_ms=500):
+        if not config.ENABLE_MUSIC:
+            return
+
+        if song_id is not None and song_id not in cls.SONG_PATHS:
+            print("WARN: unrecognized song id: {}".format(song_id))
+            return
+
+        cls.FADEOUT_LOCK.acquire()
+        try:
+            if cls.CURRENT_SONG_ID is None:
+                # Easy case, no song is playing
+                cls._play_song_immediately(song_id, fadein_ms)
+            else:
+                if cls.IS_FADING:
+                    # We're alreading fading, just swap in the new song
+                    cls.NEXT_SONG_AFTER_FADEOUT = song_id
+                elif cls.CURRENT_SONG_ID == song_id:
+                    # We're already playing the correct song; do nothing
+                    pass
+                else:
+                    # We're playing a song already, but it's not the right one. Time to fade.
+                    cls.IS_FADING = True
+                    cls.NEXT_SONG_AFTER_FADEOUT = song_id
+                    x = threading.Thread(target=SoundManager._do_async_fadeout, args=(fadeout_ms, fadein_ms))
+                    x.start()
+        finally:
+            cls.FADEOUT_LOCK.release()
+
+    @classmethod
+    def _do_async_fadeout(cls, fadeout_ms, fadein_ms):
+        # this is some base code from my engine~
+        old_time_millis = int(round(time.time() * 1000))
+        pygame.mixer.music.fadeout(fadeout_ms)
+        cur_time_millis = int(round(time.time() * 1000))
+
+        if cur_time_millis - old_time_millis < fadeout_ms:
+            rem_time_millis = fadeout_ms - (cur_time_millis - old_time_millis)
+            time.sleep(rem_time_millis / 1000.0)
+
+        cls.FADEOUT_LOCK.acquire()
+        try:
+            cls.IS_FADING = False
+            if cls.NEXT_SONG_AFTER_FADEOUT is None:
+                pygame.mixer.music.stop()
+                cls.CURRENT_SONG_ID = None
+            else:
+                cls._play_song_immediately(cls.NEXT_SONG_AFTER_FADEOUT, fadein_ms=fadein_ms)
+                cls.NEXT_SONG_AFTER_FADEOUT = None
+        finally:
+            cls.FADEOUT_LOCK.release()
+
+    @classmethod
+    def _play_song_immediately(cls, song_id, fadein_ms):
+        try:
+            pygame.mixer.music.load(cls.SONG_PATHS[song_id])
+            pygame.mixer.music.set_volume(cls.get_song_volume())
+            pygame.mixer.music.play(loops=-1, fade_ms=fadein_ms)
+            cls.CURRENT_SONG_ID = song_id
+        except Exception:
+            print("ERROR: failed to play song: {}".format(cls.SONG_PATHS[song_id]))
+            cls.CURRENT_SONG_ID = None
+            try:
+                # if there's another song playing, try to stop it
+                pygame.mixer.music.stop()
+            except Exception:
+                pass
 
     @classmethod
     def should_interrupt(cls, new_sound, old_sound):

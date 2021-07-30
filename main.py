@@ -20,6 +20,7 @@ class GameLoop:
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.get_surface()
         self.current_mode = MainMenuMode(self)
+        self.current_mode.on_mode_start()
 
     def set_mode(self, next_mode):
         if self.current_mode != next_mode:
@@ -97,8 +98,7 @@ class MainMenuMode(GameMode):
         self.option_font = fonts.get_font(config.OPTION_SIZE)
 
     def on_mode_start(self):
-        # TODO song
-        pass
+        SoundManager.play_song("menu_theme", fadein_ms=3000)
 
     def start_pressed(self):
         import gameplay.gamestuff  # shh don't tell pylint about this

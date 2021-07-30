@@ -6,7 +6,7 @@ _CACHED_FONTS = {}  # (size: int, bold: bool, font_name: str) -> Font
 
 _path_to_lame_font = "assets/fonts/CONSOLA.TTF"
 _path_to_lame_font_bold = "assets/fonts/CONSOLAB.TTF"
-_path_to_cool_font = "asserts/fonts/VectorBattle-e9XO.ttf"
+_path_to_cool_font = "assets/fonts/VectorBattle-e9XO.ttf"
 
 
 def get_font(size, bold=False):

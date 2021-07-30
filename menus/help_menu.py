@@ -6,6 +6,7 @@ import pygame
 import rendering.neon as neon
 import keybinds
 from main import GameMode, GameLoop
+import util.fonts as fonts
 import config
 
 
@@ -26,8 +27,9 @@ class HelpMenuMode(GameMode):
         self.n_squares = 25
         self.squares = [self._generate_square() for _ in range(self.n_squares)]  # format -> [x, y, angle, speed]
 
-        self.title_font = pygame.font.Font(pygame.font.get_default_font(), 36)
-        self.option_font = pygame.font.Font(pygame.font.get_default_font(), 24)
+        self.title_font = fonts.get_font(config.TITLE_SIZE)
+        self.option_font = fonts.get_font(config.OPTION_SIZE)
+        self.info_font = fonts.get_font(config.INFO_SIZE)
 
     def _generate_square(self):
         screen_w, screen_h = pygame.display.get_surface().get_size()
@@ -58,8 +60,8 @@ class HelpMenuMode(GameMode):
 
     def update(self, dt, events):
         for i in self.squares:
-            i[2] += i[3]
-            i[1] -= abs(i[3])
+            i[2] += i[3] * dt * 100
+            i[1] -= abs(i[3]) * dt  * 100
         self.squares = [s for s in self.squares if s[1] > -50]  # purge squares that fell off the top of the screen
 
         while len(self.squares) < self.n_squares:
@@ -83,7 +85,7 @@ class HelpMenuMode(GameMode):
         for i in self.squares:
             pygame.draw.lines(screen, (0, 255, 0), True, self.get_square_points(i[0], i[1], i[2]))
         screen_size = screen.get_size()
-        title_surface = self.title_font.render('Help', False, neon.WHITE)
+        title_surface = self.title_font.render('HELP', False, neon.WHITE)
 
         title_size = title_surface.get_size()
         title_y = screen_size[1] // 4 - title_size[1] // 2
@@ -105,8 +107,8 @@ class HelpMenuMode(GameMode):
                     msg = 'how to turn sounds on or off'
                 elif i == 3:
                     msg = 'Press ESCAPE to Go Back'
-            option_surface = self.option_font.render(option_text, False, color)
+            option_surface = self.option_font.render(option_text.upper(), False, color)
             option_size = option_surface.get_size()
             screen.blit(option_surface, dest=((screen_size[0] // (len(self.options) + 1)) * (i + 1) - option_size[0] // 2, option_y))
-            msg_surf = self.title_font.render(msg, False, neon.WHITE)
+            msg_surf = self.info_font.render(msg.upper(), False, neon.WHITE)
             screen.blit(msg_surf, msg_surf.get_rect(center=(screen_size[0] // 2, screen_size[1] * 2 / 3)))

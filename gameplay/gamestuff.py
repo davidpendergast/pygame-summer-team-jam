@@ -132,9 +132,9 @@ class PauseMenu(main.GameMode):
         for i in range(len(self.options)):
             option_text = self.options[i][0]
             is_selected = i == self.selected_option_idx
-            color = neon.WHITE if not is_selected else neon.ORANGE
+            color = neon.WHITE if not is_selected else neon.RED
 
-            option_surface = self.option_font.render(option_text, True, color)
+            option_surface = self.option_font.render(option_text.upper(), True, color)
             option_size = option_surface.get_size()
             screen.blit(option_surface, dest=(screen_size[0] // 2 - option_size[0] // 2, option_y))
             option_y += option_size[1]

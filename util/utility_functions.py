@@ -1,8 +1,11 @@
 import math
+import os
+import pathlib
+import sys
 from typing import Union, List
+
 import pygame
-import time
-import sys, os, pathlib
+
 # import config
 
 pygame.init()
@@ -12,7 +15,7 @@ def distance(p1: Union[tuple, list], p2: Union[tuple, list]) -> float:
     return math.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2)
 
 
-def get_display_resolution():# -> tuple[int, int]:
+def get_display_resolution():   # -> tuple[int, int]:
     display_width: int = pygame.display.Info().current_w
     display_height: int = pygame.display.Info().current_h
     return display_width, display_height
@@ -85,4 +88,3 @@ class SpriteSheet:
             sprite = self.get_sprite_at_pos((i % self.col) * self.w, i % self.row * self.h)
             images.append(sprite)
         return images
-

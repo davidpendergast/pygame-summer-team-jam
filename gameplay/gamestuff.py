@@ -29,6 +29,8 @@ class GameplayMode(main.GameMode):
         self.foresight = 150
         self.neon_renderer = neon.NeonRenderer()
 
+        self.score_font = pygame.font.Font("assets/fonts/VectorBattle.ttf", 30)
+
     def on_mode_start(self):
         SoundManager.play_song('game_theme', fadeout_ms=250, fadein_ms=1000)
 
@@ -53,7 +55,7 @@ class GameplayMode(main.GameMode):
                     self.loop.set_mode(GameplayMode(self.loop))
 
     def draw_to_screen(self, screen, extra_darkness_factor=1):
-        screen.fill((0, 0, 0))
+        # screen.fill((0, 0, 0))
         all_lines = []
         cell_length = self.current_level.get_cell_length()
         z = self.camera.position.z
@@ -76,6 +78,7 @@ class GameplayMode(main.GameMode):
         neon_lines = neon.NeonLine.convert_line2ds_to_neon_lines(all_2d_lines)
 
         self.neon_renderer.draw_lines(screen, neon_lines, extra_darkness_factor=extra_darkness_factor)
+        screen.blit(self.score_font.render(str(self.player.get_score()), False, neon.LIME), (20, 20))
 
 
 class PauseMenu(main.GameMode):

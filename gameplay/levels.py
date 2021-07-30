@@ -66,8 +66,17 @@ class Spikes(Obstacle):
         super().__init__(lane, z, length, neon.RED, True, False)
 
     def generate_3d_model_at_origin(self) -> List[Line3D]:
-        # TODO add cool spiky shapes
-        return super().generate_3d_model_at_origin()
+        height = 0.2
+        pts = [
+            Vector3(-1, 0, 0),
+            Vector3(-0.8, height, 0),
+            Vector3(-0.4, 0, 0),
+            Vector3(0, height, 0),
+            Vector3(0.4, 0, 0),
+            Vector3(0.8, height, 0),
+            Vector3(1, 0, 0)
+        ]
+        return Line3D.make_lines_from_list(pts, closed=True, color=self.get_color())
 
 
 class Enemy(Obstacle):

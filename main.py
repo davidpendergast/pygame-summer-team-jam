@@ -19,14 +19,17 @@ class GameLoop:
         self.screen = pygame.display.get_surface()
         self.modes = [MainMenuMode(self)]
 
-    def set_next_mode(self, next_mode):
+    def push_next_mode(self, next_mode):
         self.modes.append(next_mode)
 
     def pop_current_mode(self):
-        self.modes.pop(-1)
+        return self.modes.pop(-1)
+
+    def set_mode_and_clear_stack(self, next_mode):
+        self.modes = [next_mode]
 
     def start(self):
-
+        dt = 0
         while self.running:
             events = []
             for e in pygame.event.get():
@@ -53,13 +56,14 @@ class GameLoop:
                 self.modes[-1].on_mode_end()
                 self.modes.pop()
 
-            dt = self.clock.tick(TARGET_FPS)/1000.0
             self.modes[-1].update(dt, events)
             self.modes[-1].draw_to_screen(self.screen)
             pygame.display.flip()
 
             if config.TESTMODE:
                 pygame.display.set_caption(f"TEMPEST RUN {int(self.clock.get_fps())} FPS")
+
+            dt = self.clock.tick(TARGET_FPS) / 1000.0
 
 
 class GameMode:
@@ -105,11 +109,11 @@ class MainMenuMode(GameMode):
 
     def start_pressed(self):
         import gameplay.gamestuff  # shh don't tell pylint about this
-        self.loop.set_next_mode(gameplay.gamestuff.GameplayMode(self.loop))
+        self.loop.set_mode_and_clear_stack(gameplay.gamestuff.GameplayMode(self.loop))
 
     def help_pressed(self):
         import menus.help_menu as help_menu
-        self.loop.set_next_mode(help_menu.HelpMenuMode(self.loop))
+        self.loop.push_next_mode(help_menu.HelpMenuMode(self.loop))
 
     def credits_pressed(self):
         # TODO add credits menu

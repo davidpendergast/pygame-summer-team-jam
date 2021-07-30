@@ -51,7 +51,7 @@ class GameplayMode(main.GameMode):
                 if e.key in keybinds.SLIDE:
                     self.player.slide()
                 if e.key == pygame.K_ESCAPE:
-                    self.loop.set_next_mode(PauseMenu(self.loop))
+                    self.loop.push_next_mode(PauseMenu(self.loop))
             if e.type == pygame.KEYUP:
                 if e.key in keybinds.SLIDE:
                     self.player.set_mode('run')
@@ -118,7 +118,7 @@ class PauseMenu(main.GameMode):
 
     def exit_pressed(self):
         import main
-        self.loop.set_next_mode(main.MainMenuMode(self.loop))
+        self.loop.set_mode_and_clear_stack(main.MainMenuMode(self.loop))
 
     def draw_to_screen(self, screen):
         # make the level underneath fade darker slightly after you've paused

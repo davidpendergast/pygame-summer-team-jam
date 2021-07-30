@@ -24,9 +24,8 @@ class SoundManager:
         'kill': 'assets/sounds/kill',
         'accept': 'assets/sounds/accept',
         'blip': 'assets/sounds/blip',
-        'blip2': 'assets/sounds/blip2'
     }
-    PRIORITIES = ['accept', 'death', 'jump', 'kill', 'blip2', 'blip']
+    PRIORITIES = ['accept', 'death', 'jump', 'kill', 'blip']
 
     LOADED_SOUNDS = {}
 

@@ -86,29 +86,3 @@ class SpriteSheet:
             images.append(sprite)
         return images
 
-
-class Text:
-    def __init__(self, display: pygame.Surface, msg, x=250, y=250, size=50, color=(255, 255, 255), font='courier', blink=False, centered=False):
-        self.display = display
-        self.msg = msg
-        self.x = x
-        self.y = y
-        self.size = size
-        self.color = color
-        text_font = pygame.font.Font(resource_path('assets/VectorBattle-e9XO.ttf'), self.size)
-        self.text = text_font.render(self.msg, False, self.color)
-        self.blink = blink
-        self.blink_timer = time.time()
-        self.visible = True
-        self.centered = centered
-
-    def draw(self):
-        if self.blink:
-            if time.time() - self.blink_timer >= 0.5:
-                self.blink_timer = time.time()
-                self.visible = not self.visible
-        if self.visible:
-            if self.centered:
-                self.display.blit(self.text, self.text.get_rect(center=(self.x, self.y)))
-            else:
-                self.display.blit(self.text, self.text.get_rect(topleft=(self.x, self.y)))

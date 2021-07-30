@@ -7,7 +7,10 @@ import pygame
 # vertical -> y-axis
 # into-the-screen-axis -> z-axis
 import gameplay.player2d as player2d
-import util.utility_functions as utility_functions
+import util.fonts as fonts
+
+# this was the 2D prototype Tank King built before we had the 3D stuff set up.
+# Served us well, but I've broken it pretty badly RIP
 
 
 class Level:
@@ -40,7 +43,7 @@ class Renderer:
     def render_craters(self):
         for i in self.level.craters:
             pygame.draw.rect(self.display, (255, 0, 0), (100 + 25 + i[0] * 100, 600 - 100 - i[1] - 0 + self.level.player.z, 50, 50), 2)
-            utility_functions.Text(self.display, 'Z: ' + str(i[1]), 100 + i[0] * 100, 600 - 100 - i[1] + self.level.player.z, 15).draw()
+            fonts.Text(self.display, 'Z: ' + str(i[1]), 100 + i[0] * 100, 600 - 100 - i[1] + self.level.player.z, 15).draw()
 
     def render_player(self):
         pygame.draw.rect(self.display, (255, 255, 0), (self.level.player.lane * 100 + 100 + 25, 600 - 100 - 0, 50, 50), 2)
@@ -75,10 +78,10 @@ def preview_code():
                     sys.exit(0)
         screen.fill((0, 0, 0))
         r.update(events)
-        p.update(1 / 60, events)
+        p.update(1 / 60, None, events)
         r.render_level()
         p.draw(screen)
-        utility_functions.Text(screen, 'FPS: ' + str(int(clock.get_fps())), 25, 25, 25).draw()
+        fonts.Text(screen, 'FPS: ' + str(int(clock.get_fps())), 25, 25, 25).draw()
         pygame.display.update()
         pygame.display.set_caption(str(int(clock.get_fps())))
         clock.tick(60)

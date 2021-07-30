@@ -4,6 +4,7 @@ import keybinds
 import rendering.neon as neon
 import config
 import util.profiling as profiling
+import util.fonts as fonts
 
 TARGET_FPS = config.BASE_FPS if not config.TESTMODE else -1
 
@@ -17,16 +18,19 @@ class GameLoop:
         self.running = True
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.get_surface()
-        self.modes = [MainMenuMode(self)]
+        self.current_mode = MainMenuMode(self)
 
-    def set_next_mode(self, next_mode):
-        self.modes.append(next_mode)
+    def set_mode(self, next_mode):
+        if self.current_mode != next_mode:
+            self.current_mode.on_mode_end()
+        self.current_mode = next_mode
+        self.current_mode.on_mode_start()
 
     def pop_current_mode(self):
-        self.modes.pop(-1)
+        return self.modes.pop(-1)
 
     def start(self):
-
+        dt = 0
         while self.running:
             events = []
             for e in pygame.event.get():
@@ -45,28 +49,23 @@ class GameLoop:
                         print("INFO: toggling neon to: {}".format(config.USE_NEON))
                     if e.key in keybinds.TOGGLE_PROFILER:
                         profiling.get_instance().toggle()
+            cur_mode = self.current_mode
 
-            if self.modes[-1].state == 0:
-                self.modes[-1].on_mode_start()
-                self.modes[-1].state = 1
-            elif self.modes[-1].state == -1:
-                self.modes[-1].on_mode_end()
-                self.modes.pop()
+            cur_mode.update(dt, events)
+            cur_mode.draw_to_screen(self.screen)
 
-            dt = self.clock.tick(TARGET_FPS)/1000.0
-            self.modes[-1].update(dt, events)
-            self.modes[-1].draw_to_screen(self.screen)
             pygame.display.flip()
 
             if config.TESTMODE:
                 pygame.display.set_caption(f"TEMPEST RUN {int(self.clock.get_fps())} FPS")
+
+            dt = self.clock.tick(TARGET_FPS) / 1000.0
 
 
 class GameMode:
 
     def __init__(self, loop: GameLoop):
         self.loop: GameLoop = loop
-        self.state = 0
 
     def on_mode_start(self):
         """Called when mode becomes active"""
@@ -96,8 +95,8 @@ class MainMenuMode(GameMode):
             ("exit", lambda: self.exit_pressed())
         ]
 
-        self.title_font = pygame.font.Font("assets/fonts/CONSOLA.TTF", config.TITLE_SIZE)
-        self.option_font = pygame.font.Font("assets/fonts/CONSOLA.TTF", config.OPTION_SIZE)
+        self.title_font = fonts.get_font(config.TITLE_SIZE)
+        self.option_font = fonts.get_font(config.OPTION_SIZE)
 
     def on_mode_start(self):
         # TODO song
@@ -105,11 +104,11 @@ class MainMenuMode(GameMode):
 
     def start_pressed(self):
         import gameplay.gamestuff  # shh don't tell pylint about this
-        self.loop.set_next_mode(gameplay.gamestuff.GameplayMode(self.loop))
+        self.loop.set_mode(gameplay.gamestuff.GameplayMode(self.loop))
 
     def help_pressed(self):
         import menus.help_menu as help_menu
-        self.loop.set_next_mode(help_menu.HelpMenuMode(self.loop))
+        self.loop.set_mode(help_menu.HelpMenuMode(self.loop, self))
 
     def credits_pressed(self):
         # TODO add credits menu
@@ -150,7 +149,7 @@ class MainMenuMode(GameMode):
             is_selected = i == self.selected_option_idx
             color = neon.WHITE if not is_selected else neon.RED
 
-            option_surface = self.option_font.render(option_text, True, color)
+            option_surface = self.option_font.render(option_text.upper(), True, color)
             option_size = option_surface.get_size()
             screen.blit(option_surface, dest=(screen_size[0] // 2 - option_size[0] // 2, option_y))
             option_y += option_size[1]

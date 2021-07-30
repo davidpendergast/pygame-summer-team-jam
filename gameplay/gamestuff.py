@@ -28,33 +28,19 @@ class GameplayMode(main.GameMode):
         self.neon_renderer = neon.NeonRenderer()
 
     def update(self, dt, events):
-        cur_z = self.player.z
-        self.player.set_speed(self.current_level.get_player_speed(cur_z))
-        self.player.update(dt)
         self.handle_events(events)
-        # TODO check for collisions and stuff
+        self.player.update(dt, self.current_level, events)
 
         self.camera.position.z = self.player.z + self.camera_z_offset
         self.current_level.unload_obstacles(self.camera.position.z + self.unload_offset)
 
     def handle_events(self, events):
-        if events is None:
-            return
         for e in events:
             if e.type == pygame.KEYDOWN:
-                if e.key in keybinds.JUMP:
-                    self.player.jump()
-                if e.key in keybinds.LEFT:
-                    self.player.move_left()
-                if e.key in keybinds.RIGHT:
-                    self.player.move_right()
-                if e.key in keybinds.SLIDE:
-                    self.player.slide()
-                if e.key == pygame.K_ESCAPE:
+                if e.key in keybinds.MENU_CANCEL:
                     self.loop.push_next_mode(PauseMenu(self.loop))
-            if e.type == pygame.KEYUP:
-                if e.key in keybinds.SLIDE:
-                    self.player.set_mode('run')
+                if e.key in keybinds.RESET:
+                    self.loop.set_mode_and_clear_stack(GameplayMode(self.loop))
 
     def draw_to_screen(self, screen, extra_darkness_factor=1):
         screen.fill((0, 0, 0))

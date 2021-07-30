@@ -7,7 +7,7 @@ import rendering.neon as neon
 class Obstacle:
     """Base class for obstacles"""
 
-    def __init__(self, lane, z, length, color, can_jump_over, can_slide_through):
+    def __init__(self, lane, z, length, color, can_jump_over, can_slide_through, can_run_through=False):
         # the lane the obstacle covers
         self.lane = lane
 
@@ -19,6 +19,7 @@ class Obstacle:
 
         self._can_jump = can_jump_over
         self._can_slide_through = can_slide_through
+        self._can_run_through = can_run_through
 
         # used to avoid recreating the 3D model every frame
         # will be a List[Line3D] if present
@@ -30,8 +31,32 @@ class Obstacle:
     def should_squeeze(self):
         return True
 
+    def is_colliding(self, player):
+        if player.is_dead():
+            return False
+        if player.z + player.length / 2 < self.z or self.z + self.length < player.z:
+            return False
+        elif player.is_jumping():
+            if not self.can_jump_over():
+                return True
+            else:
+                return player.y <= self.get_jump_clearance_height()
+        elif player.is_sliding():
+            return not self.can_slide_through()
+        elif player.is_running():
+            return not self.can_run_through()
+        else:
+            print("WARN: unknown player state: {}".format(player.get_mode()))
+            return False
+
     def can_jump_over(self):
         return self._can_jump
+
+    def can_run_through(self):
+        return self._can_run_through
+
+    def get_jump_clearance_height(self):
+        return 0.1
 
     def can_slide_through(self):
         return self._can_slide_through
@@ -211,12 +236,13 @@ class InfiniteGeneratingLevel(Level):
         if random.random() < 0.333:
             r = random.randint(0, 3)
             cs = self.get_cell_length()
+            length = 3
             if r == 0:
-                return Wall(n, i * cs, cs)
+                return Wall(n, (i + 0.5) * cs - length / 2, length)
             elif r == 1:
-                return Spikes(n, i * cs, cs)
+                return Spikes(n, (i + 0.5) * cs - length / 2, length)
             else:
-                return Enemy(n, i * cs, cs)
+                return Enemy(n, (i + 0.5) * cs - length / 2, length)
         else:
             return None
 
@@ -244,6 +270,7 @@ class InfiniteGeneratingLevel(Level):
         Fetches all the obstacles in the specified lane between the two z coordinates. Will generate
         that portion of the level if necessary.
         """
+        n = n % self.number_of_lanes()
         cs = self.get_cell_length()
         cell_start = int(z_start / cs)
         cell_end = int(z_end / cs + 1)

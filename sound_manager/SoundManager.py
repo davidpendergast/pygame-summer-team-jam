@@ -68,10 +68,10 @@ class SoundManager:
 
     @classmethod
     def play(cls, sound_id):
-        if not config.ENABLE_SOUND_EFFECTS:
+        if not config.Sound.enabled:
             return False
 
-        volume = min(1.0, config.SOUND_EFFECTS_VOLUME * config.MASTER_VOLUME)
+        volume = min(1.0, config.Sound.volume)
         if volume <= 0:
             return False
 
@@ -99,11 +99,11 @@ class SoundManager:
 
     @classmethod
     def get_song_volume(cls):
-        return max(0, min(1, cls.SONG_VOLUME_MULTIPLIER * config.MASTER_VOLUME * config.MUSIC_VOLUME))
+        return max(0, min(1, cls.SONG_VOLUME_MULTIPLIER * config.Music.volume))
 
     @classmethod
     def play_song(cls, song_id, fadeout_ms=1000, fadein_ms=500):
-        if not config.ENABLE_MUSIC:
+        if not config.Music.enabled:
             return
 
         if song_id is not None and song_id not in cls.SONG_PATHS:

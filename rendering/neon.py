@@ -69,7 +69,7 @@ class NeonRenderer:
         :param lines: the lines to draw
         :param extra_darkness_factor: a value from 0 to 1 that will control the 'extra darkness' of the lines (0 being completely dark).
         """
-        if not config.USE_NEON:
+        if not config.Debug.use_neon:
             for line in lines:
                 pygame.draw.lines(surface, line.color, False, line.vector_points, width=line.width)
             return
@@ -77,7 +77,7 @@ class NeonRenderer:
         if self._buf is None or (self._buf.shape[0], self._buf.shape[1]) != surface.get_size():
             self._buf = pygame.surfarray.array3d(surface)
 
-        # fill screen with black
+        # # fill screen with black
         self._buf[...] = 0
 
         # Ghast's Neon Line Drawing AlgorithmTM

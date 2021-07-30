@@ -199,7 +199,7 @@ if __name__ == "__main__":
                     profiling.get_instance().toggle()
                 elif e.key == pygame.K_n:
                     import config
-                    config.USE_NEON = not config.USE_NEON
+                    config.Debug.use_neon = not config.Debug.use_neon
 
         keys_held = pygame.key.get_pressed()
         if keys_held[pygame.K_LEFT] or keys_held[pygame.K_RIGHT]:

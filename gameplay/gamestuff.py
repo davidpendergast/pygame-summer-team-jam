@@ -55,7 +55,7 @@ class GameplayMode(main.GameMode):
                     self.loop.set_mode(GameplayMode(self.loop))
 
     def draw_to_screen(self, screen, extra_darkness_factor=1):
-        # screen.fill((0, 0, 0))
+        screen.fill((0, 0, 0))
         all_lines = []
         cell_length = self.current_level.get_cell_length()
         z = self.camera.position.z
@@ -92,8 +92,8 @@ class PauseMenu(main.GameMode):
             ("exit", lambda: self.exit_pressed())
         ]
 
-        self.title_font = fonts.get_font(config.TITLE_SIZE)
-        self.option_font = fonts.get_font(config.OPTION_SIZE)
+        self.title_font = fonts.get_font(config.FontSize.title)
+        self.option_font = fonts.get_font(config.FontSize.option)
 
         self.pause_timer = 0  # how long we've been paused
 
@@ -170,9 +170,9 @@ class RetryMenu(main.GameMode):
             ("exit", lambda: self.exit_pressed())
         ]
 
-        self.title_font = fonts.get_font(config.TITLE_SIZE)
-        self.option_font = fonts.get_font(config.OPTION_SIZE)
-        self.info_font = fonts.get_font(config.INFO_SIZE)
+        self.title_font = fonts.get_font(config.FontSize.title)
+        self.option_font = fonts.get_font(config.FontSize.option)
+        self.info_font = fonts.get_font(config.FontSize.info)
 
         self.pause_timer = 0  # how long we've been paused
 

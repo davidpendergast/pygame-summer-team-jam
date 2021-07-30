@@ -1,6 +1,7 @@
 import pygame
 import keybinds
 from typing import List
+from sound_manager.SoundManager import SoundManager
 
 import util.fonts as fonts
 
@@ -38,13 +39,13 @@ class Player:
         return self.current_mode
 
     def move_left(self):
-        # TODO feels pretty bad to not let you move while jumping, might want to change this
         if not self.is_jumping() and not self.is_dead():
+            SoundManager.play('blip')
             self.lane -= 1
 
     def move_right(self):
-        # TODO feels pretty bad to not let you move while jumping, might want to change this
         if not self.is_jumping() and not self.is_dead():
+            SoundManager.play('blip')
             self.lane += 1
 
     def move_forward(self, dt):
@@ -58,6 +59,7 @@ class Player:
 
     def jump(self):
         if not self.is_jumping():
+            SoundManager.play('jump')
             self.set_mode('jump')
             self.dy = 10
 
@@ -114,10 +116,10 @@ class Player:
             lane_n = self.get_lane(level.number_of_lanes())
             obstacles = level.get_all_obstacles_between(lane_n, self.z, self.z + self.length)
             for obs in obstacles:
-                if obs.is_colliding(self):
+                if obs.handle_potential_collision(self):
                     self.set_mode('dead')
+                    SoundManager.play('death')
                     return
-                    # TODO death sound
 
     def draw(self, display):
         # draw info to display

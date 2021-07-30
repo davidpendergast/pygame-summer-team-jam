@@ -11,6 +11,7 @@ import keybinds
 import util.utility_functions as utility_functions
 import util.fonts as fonts
 import gameplay.highscores as highscores
+from sound_manager.SoundManager import SoundManager
 
 
 class GameplayMode(main.GameMode):
@@ -27,6 +28,9 @@ class GameplayMode(main.GameMode):
 
         self.foresight = 150
         self.neon_renderer = neon.NeonRenderer()
+
+    def on_mode_start(self):
+        SoundManager.play_song('game_theme', fadeout_ms=250, fadein_ms=1000)
 
     def update(self, dt, events):
         self.handle_events(events)
@@ -75,6 +79,7 @@ class GameplayMode(main.GameMode):
 
 
 class PauseMenu(main.GameMode):
+
     def __init__(self, loop, gameplay_mode: GameplayMode):
         super().__init__(loop)
         self.selected_option_idx = 0
@@ -89,15 +94,22 @@ class PauseMenu(main.GameMode):
 
         self.pause_timer = 0  # how long we've been paused
 
+    def on_mode_start(self):
+        SoundManager.play('blip2')
+        SoundManager.set_song_volume_multiplier(0.5)
+
+    def on_mode_end(self):
+        SoundManager.set_song_volume_multiplier(1.0)
+
     def update(self, dt, events):
         self.pause_timer += dt
         for e in events:
             if e.type == pygame.KEYDOWN:
                 if e.key in keybinds.MENU_UP:
-                    # TODO play menu blip sound
+                    SoundManager.play('blip')
                     self.selected_option_idx = (self.selected_option_idx - 1) % len(self.options)
                 elif e.key in keybinds.MENU_DOWN:
-                    # TODO play menu blip sound
+                    SoundManager.play('blip')
                     self.selected_option_idx = (self.selected_option_idx + 1) % len(self.options)
                 elif e.key in keybinds.MENU_ACCEPT:
                     self.options[self.selected_option_idx][1]()  # activate the option's lambda
@@ -107,11 +119,11 @@ class PauseMenu(main.GameMode):
                     return
 
     def continue_pressed(self):
-        # return to gameplay
+        SoundManager.play('accept')
         self.loop.set_mode(self.gameplay_mode)
 
     def exit_pressed(self):
-        import main
+        SoundManager.play('blip2')
         self.loop.set_mode(main.MainMenuMode(self.loop))
 
     def draw_to_screen(self, screen):
@@ -161,20 +173,29 @@ class RetryMenu(main.GameMode):
 
         self.pause_timer = 0  # how long we've been paused
 
+    def on_mode_start(self):
+        SoundManager.play('blip2')
+        SoundManager.set_song_volume_multiplier(0.5)
+
+    def on_mode_end(self):
+        SoundManager.set_song_volume_multiplier(1.0)
+
     def update(self, dt, events):
         self.pause_timer += dt
         for e in events:
             if e.type == pygame.KEYDOWN:
-                if e.key in keybinds.MENU_UP:
-                    # TODO play menu blip sound
+                if e.key in keybinds.MENU_UP and self.pause_timer > 0.5:
+                    SoundManager.play('blip')
                     self.selected_option_idx = (self.selected_option_idx - 1) % len(self.options)
-                elif e.key in keybinds.MENU_DOWN:
-                    # TODO play menu blip sound
+                elif e.key in keybinds.MENU_DOWN and self.pause_timer > 0.5:
+                    SoundManager.play('blip')
                     self.selected_option_idx = (self.selected_option_idx + 1) % len(self.options)
                 elif e.key in keybinds.MENU_ACCEPT:
+                    SoundManager.play('accept')
                     self.options[self.selected_option_idx][1]()  # activate the option's lambda
                     return
                 elif e.key in keybinds.MENU_CANCEL:
+                    SoundManager.play('blip2')
                     self.exit_pressed()
                     return
 

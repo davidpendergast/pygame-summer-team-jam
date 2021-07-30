@@ -8,6 +8,7 @@ import keybinds
 from main import GameMode, GameLoop
 import util.fonts as fonts
 import config
+from sound_manager.SoundManager import SoundManager
 
 
 class HelpMenuMode(GameMode):
@@ -70,12 +71,13 @@ class HelpMenuMode(GameMode):
         for e in events:
             if e.type == pygame.KEYDOWN:
                 if e.key in keybinds.LEFT:
-                    # TODO play menu blip sound
+                    SoundManager.play('blip')
                     self.selected_option_idx = (self.selected_option_idx - 1) % len(self.options)
                 elif e.key in keybinds.RIGHT:
-                    # TODO play menu blip sound
+                    SoundManager.play('blip')
                     self.selected_option_idx = (self.selected_option_idx + 1) % len(self.options)
                 elif e.key in keybinds.MENU_CANCEL:
+                    SoundManager.play('blip2')
                     self.exit_pressed()
                     return
 

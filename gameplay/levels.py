@@ -2,6 +2,7 @@ from typing import List
 from pygame import Vector3, Vector2, Color
 from rendering.threedee import Line3D
 import rendering.neon as neon
+from sound_manager.SoundManager import SoundManager
 
 
 class Obstacle:
@@ -21,6 +22,8 @@ class Obstacle:
         self._can_slide_through = can_slide_through
         self._can_run_through = can_run_through
 
+        self._is_dead = False
+
         # used to avoid recreating the 3D model every frame
         # will be a List[Line3D] if present
         self._cached_3d_model = None
@@ -31,23 +34,37 @@ class Obstacle:
     def should_squeeze(self):
         return True
 
-    def is_colliding(self, player):
-        if player.is_dead():
+    def handle_potential_collision(self, player) -> bool:
+        """
+        :return: whether the player should die as a result of this collision.
+        """
+        if player.is_dead() or self._is_dead:
             return False
         if player.z + player.length / 2 < self.z or self.z + self.length < player.z:
             return False
-        elif player.is_jumping():
+
+        if player.is_jumping():
             if not self.can_jump_over():
                 return True
             else:
                 return player.y <= self.get_jump_clearance_height()
         elif player.is_sliding():
-            return not self.can_slide_through()
+            if self.can_slide_through():
+                # this kills the crab
+                self._handle_death()
+                return False
+            else:
+                return True
         elif player.is_running():
             return not self.can_run_through()
         else:
             print("WARN: unknown player state: {}".format(player.get_mode()))
             return False
+
+    def _handle_death(self):
+        self._is_dead = True
+        SoundManager.play('kill')
+        # TODO make graphics explode
 
     def can_jump_over(self):
         return self._can_jump
@@ -233,7 +250,7 @@ class InfiniteGeneratingLevel(Level):
     def generate_obstacle_at_cell(self, n, i) -> Obstacle:
         """Subclasses can override this to implement custom generation logic."""
         import random
-        if random.random() < 0.333:
+        if random.random() < 0.333 * min(1, i / 20):
             r = random.randint(0, 3)
             cs = self.get_cell_length()
             length = 3

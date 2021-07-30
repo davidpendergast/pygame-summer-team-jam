@@ -5,6 +5,7 @@ import rendering.neon as neon
 import config
 import util.profiling as profiling
 import util.fonts as fonts
+from sound_manager.SoundManager import SoundManager
 
 TARGET_FPS = config.BASE_FPS if not config.TESTMODE else -1
 
@@ -25,9 +26,6 @@ class GameLoop:
             self.current_mode.on_mode_end()
         self.current_mode = next_mode
         self.current_mode.on_mode_start()
-
-    def pop_current_mode(self):
-        return self.modes.pop(-1)
 
     def start(self):
         dt = 0
@@ -121,15 +119,17 @@ class MainMenuMode(GameMode):
         for e in events:
             if e.type == pygame.KEYDOWN:
                 if e.key in keybinds.MENU_UP:
-                    # TODO play menu blip sound
+                    SoundManager.play("blip")
                     self.selected_option_idx = (self.selected_option_idx - 1) % len(self.options)
                 elif e.key in keybinds.MENU_DOWN:
-                    # TODO play menu blip sound
+                    SoundManager.play("blip")
                     self.selected_option_idx = (self.selected_option_idx + 1) % len(self.options)
                 elif e.key in keybinds.MENU_ACCEPT:
+                    SoundManager.play("accept")
                     self.options[self.selected_option_idx][1]()  # activate the option's lambda
                     return
                 elif e.key in keybinds.MENU_CANCEL:
+                    SoundManager.play("blip2")
                     self.exit_pressed()
                     return
 
@@ -157,6 +157,8 @@ class MainMenuMode(GameMode):
 
 if __name__ == "__main__":
     pygame.init()
+    SoundManager.init()
+
     pygame.display.set_mode((W, H), pygame.SCALED | pygame.RESIZABLE)
     pygame.display.set_caption("TEMPEST RUN")
     loop = GameLoop()

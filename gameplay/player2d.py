@@ -19,7 +19,6 @@ class Player:
         self.collided = False
 
     def set_mode(self, mode):
-        print("INFO: setting player mode to: {}".format(mode))
         if mode in self.modes:
             self.current_mode = mode
 
@@ -71,6 +70,9 @@ class Player:
 
     def set_speed(self, speed):
         self.speed = speed
+
+    def get_score(self):
+        return int(self.z / 10) * 10
 
     def update(self, dt, level, events):
         self._handle_inputs(events)

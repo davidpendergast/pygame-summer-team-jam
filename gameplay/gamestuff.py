@@ -10,7 +10,7 @@ import rendering.levelbuilder3d as levelbuilder3d
 import keybinds
 import util.utility_functions as utility_functions
 import util.fonts as fonts
-import config
+import gameplay.highscores as highscores
 
 
 class GameplayMode(main.GameMode):
@@ -36,7 +36,9 @@ class GameplayMode(main.GameMode):
         self.current_level.unload_obstacles(self.camera.position.z + self.unload_offset)
 
         if self.player.is_dead():
-            self.loop.set_mode(RetryMenu(self.loop, self.player.z, self))
+            score = self.player.get_score()
+            highscores.add_new_score(score)
+            self.loop.set_mode(RetryMenu(self.loop, score, self))
 
     def handle_events(self, events):
         for e in events:
@@ -73,10 +75,10 @@ class GameplayMode(main.GameMode):
 
 
 class PauseMenu(main.GameMode):
-    def __init__(self, loop, gameply_mode: GameplayMode):
+    def __init__(self, loop, gameplay_mode: GameplayMode):
         super().__init__(loop)
         self.selected_option_idx = 0
-        self.gameply_mode = gameply_mode
+        self.gameplay_mode = gameplay_mode
         self.options = [
             ("continue", lambda: self.continue_pressed()),
             ("exit", lambda: self.exit_pressed())
@@ -106,7 +108,7 @@ class PauseMenu(main.GameMode):
 
     def continue_pressed(self):
         # return to gameplay
-        self.loop.set_mode(self.gameply_mode)
+        self.loop.set_mode(self.gameplay_mode)
 
     def exit_pressed(self):
         import main
@@ -119,7 +121,7 @@ class PauseMenu(main.GameMode):
         current_darkness = utility_functions.lerp(self.pause_timer / max_darkness_time, 1, max_darkness)
 
         # drawing level underneath this menu
-        self.gameply_mode.draw_to_screen(screen, extra_darkness_factor=current_darkness)
+        self.gameplay_mode.draw_to_screen(screen, extra_darkness_factor=current_darkness)
 
         screen_size = screen.get_size()
         title_surface = self.title_font.render('PAUSE', True, neon.WHITE)
@@ -141,7 +143,83 @@ class PauseMenu(main.GameMode):
 
 
 class RetryMenu(main.GameMode):
+
     def __init__(self, loop, score, gameplay_mode: GameplayMode):
         super().__init__(loop)
         self.score = score
+        self.best_score = highscores.get_best()
+        self.selected_option_idx = 0
         self.gameplay_mode = gameplay_mode
+        self.options = [
+            ("retry", lambda: self.retry_pressed()),
+            ("exit", lambda: self.exit_pressed())
+        ]
+
+        self.title_font = fonts.get_font(config.TITLE_SIZE)
+        self.option_font = fonts.get_font(config.OPTION_SIZE)
+        self.info_font = fonts.get_font(config.INFO_SIZE)
+
+        self.pause_timer = 0  # how long we've been paused
+
+    def update(self, dt, events):
+        self.pause_timer += dt
+        for e in events:
+            if e.type == pygame.KEYDOWN:
+                if e.key in keybinds.MENU_UP:
+                    # TODO play menu blip sound
+                    self.selected_option_idx = (self.selected_option_idx - 1) % len(self.options)
+                elif e.key in keybinds.MENU_DOWN:
+                    # TODO play menu blip sound
+                    self.selected_option_idx = (self.selected_option_idx + 1) % len(self.options)
+                elif e.key in keybinds.MENU_ACCEPT:
+                    self.options[self.selected_option_idx][1]()  # activate the option's lambda
+                    return
+                elif e.key in keybinds.MENU_CANCEL:
+                    self.exit_pressed()
+                    return
+
+    def retry_pressed(self):
+        self.loop.set_mode(GameplayMode(self.loop))
+
+    def exit_pressed(self):
+        self.loop.set_mode(main.MainMenuMode(self.loop))
+
+    def draw_to_screen(self, screen):
+        # make the level underneath fade darker slightly after you've paused
+        max_darkness = 0.333
+        max_darkness_time = 0.1  # second
+        current_darkness = utility_functions.lerp(self.pause_timer / max_darkness_time, 1, max_darkness)
+
+        # TODO fade underlying level to a color, for coolness
+
+        # drawing level underneath this menu
+        self.gameplay_mode.draw_to_screen(screen, extra_darkness_factor=current_darkness)
+
+        screen_size = screen.get_size()
+        title_surface = self.title_font.render('GAME OVER', True, neon.WHITE)
+
+        title_size = title_surface.get_size()
+        title_y = screen_size[1] // 3 - title_size[1] // 2
+        screen.blit(title_surface, dest=(screen_size[0] // 2 - title_size[0] // 2, title_y))
+        cur_y = title_y + title_size[1]
+
+        subtitle_surface1 = self.info_font.render("SCORE: {}".format(self.score), True, neon.WHITE)
+        subtitle_surface1_size = subtitle_surface1.get_size()
+        screen.blit(subtitle_surface1, dest=(screen_size[0] // 2 - subtitle_surface1_size[0] // 2, cur_y))
+        cur_y += subtitle_surface1_size[1]
+
+        subtitle_surface2 = self.info_font.render("BEST: {}".format(self.best_score), True, neon.WHITE)
+        subtitle_surface2_size = subtitle_surface2.get_size()
+        screen.blit(subtitle_surface2, dest=(screen_size[0] // 2 - subtitle_surface2_size[0] // 2, cur_y))
+        cur_y += subtitle_surface2_size[1]
+
+        option_y = max(screen_size[1] // 2, cur_y)
+        for i in range(len(self.options)):
+            option_text = self.options[i][0]
+            is_selected = i == self.selected_option_idx
+            color = neon.WHITE if not is_selected else neon.RED
+
+            option_surface = self.option_font.render(option_text.upper(), True, color)
+            option_size = option_surface.get_size()
+            screen.blit(option_surface, dest=(screen_size[0] // 2 - option_size[0] // 2, option_y))
+            option_y += option_size[1]

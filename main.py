@@ -4,6 +4,7 @@ import keybinds
 import rendering.neon as neon
 import config
 import util.profiling as profiling
+import util.fonts as fonts
 
 TARGET_FPS = config.BASE_FPS if not config.TESTMODE else -1
 
@@ -94,8 +95,8 @@ class MainMenuMode(GameMode):
             ("exit", lambda: self.exit_pressed())
         ]
 
-        self.title_font = pygame.font.Font("assets/fonts/CONSOLA.TTF", config.TITLE_SIZE)
-        self.option_font = pygame.font.Font("assets/fonts/CONSOLA.TTF", config.OPTION_SIZE)
+        self.title_font = fonts.get_font(config.TITLE_SIZE)
+        self.option_font = fonts.get_font(config.OPTION_SIZE)
 
     def on_mode_start(self):
         # TODO song

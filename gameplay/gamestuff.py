@@ -9,6 +9,7 @@ import rendering.threedee as threedee
 import rendering.levelbuilder3d as levelbuilder3d
 import keybinds
 import util.utility_functions as utility_functions
+import util.fonts as fonts
 import config
 
 
@@ -81,8 +82,8 @@ class PauseMenu(main.GameMode):
             ("exit", lambda: self.exit_pressed())
         ]
 
-        self.title_font = pygame.font.Font("assets/fonts/CONSOLA.TTF", config.TITLE_SIZE)
-        self.option_font = pygame.font.Font("assets/fonts/CONSOLA.TTF", config.OPTION_SIZE)
+        self.title_font = fonts.get_font(config.TITLE_SIZE)
+        self.option_font = fonts.get_font(config.OPTION_SIZE)
 
         self.pause_timer = 0  # how long we've been paused
 

@@ -2,7 +2,7 @@ import pygame
 import keybinds
 from typing import List
 
-import util.utility_functions as utility_functions
+import util.fonts as fonts
 
 
 class Player:
@@ -119,13 +119,13 @@ class Player:
 
     def draw(self, display):
         # draw info to display
-        utility_functions.Text(display, 'X : ' + str(self.x) + ' | OPTIONAL', 50, 150, 25).draw()
-        utility_functions.Text(display, 'Y : {:.2f}'.format(self.y), 50, 200, 25).draw()
-        utility_functions.Text(display, 'Z : ' + str(int(self.z)), 50, 250, 25).draw()
-        utility_functions.Text(display, 'LANE : ' + str(self.lane), 50, 300, 25).draw()
-        utility_functions.Text(display, 'MODE : ' + self.current_mode, 550, 50, 25).draw()
+        fonts.Text(display, 'X : ' + str(self.x) + ' | OPTIONAL', 50, 150, 25).draw()
+        fonts.Text(display, 'Y : {:.2f}'.format(self.y), 50, 200, 25).draw()
+        fonts.Text(display, 'Z : ' + str(int(self.z)), 50, 250, 25).draw()
+        fonts.Text(display, 'LANE : ' + str(self.lane), 50, 300, 25).draw()
+        fonts.Text(display, 'MODE : ' + self.current_mode, 550, 50, 25).draw()
         # print(self.collided)
         if self.collided:
-            utility_functions.Text(display, 'COLLIDED', 550, 100, 25).draw()
+            fonts.Text(display, 'COLLIDED', 550, 100, 25).draw()
 
 

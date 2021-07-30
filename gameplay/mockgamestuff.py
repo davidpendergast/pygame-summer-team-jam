@@ -32,7 +32,7 @@ class MockGameplayMode(main.GameMode):
 
         for event in events:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                self.state = -1
+                self.loop.set_mode(main.MainMenuMode(self.loop))
 
     def draw_to_screen(self, screen):
         screen.fill((0, 0, 0))

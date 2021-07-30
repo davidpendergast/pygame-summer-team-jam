@@ -11,8 +11,9 @@ import config
 
 class HelpMenuMode(GameMode):
 
-    def __init__(self, loop: GameLoop):
+    def __init__(self, loop: GameLoop, prev_menu: GameMode):
         super().__init__(loop)
+        self.prev_menu = prev_menu
 
         self.selected_option_idx = 0
         self.options = [
@@ -53,7 +54,7 @@ class HelpMenuMode(GameMode):
         pass
 
     def exit_pressed(self):
-        self.loop.pop_current_mode()
+        self.loop.set_mode(self.prev_menu)
 
     def update(self, dt, events):
         for i in self.squares:

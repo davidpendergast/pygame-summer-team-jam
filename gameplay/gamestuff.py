@@ -34,13 +34,16 @@ class GameplayMode(main.GameMode):
         self.camera.position.z = self.player.z + self.camera_z_offset
         self.current_level.unload_obstacles(self.camera.position.z + self.unload_offset)
 
+        if self.player.is_dead():
+            self.loop.set_mode(RetryMenu(self.loop, self.player.z, self))
+
     def handle_events(self, events):
         for e in events:
             if e.type == pygame.KEYDOWN:
                 if e.key in keybinds.MENU_CANCEL:
-                    self.loop.push_next_mode(PauseMenu(self.loop))
+                    self.loop.set_mode(PauseMenu(self.loop, self))
                 if e.key in keybinds.RESET:
-                    self.loop.set_mode_and_clear_stack(GameplayMode(self.loop))
+                    self.loop.set_mode(GameplayMode(self.loop))
 
     def draw_to_screen(self, screen, extra_darkness_factor=1):
         screen.fill((0, 0, 0))
@@ -69,9 +72,10 @@ class GameplayMode(main.GameMode):
 
 
 class PauseMenu(main.GameMode):
-    def __init__(self, loop):
+    def __init__(self, loop, gameply_mode: GameplayMode):
         super().__init__(loop)
         self.selected_option_idx = 0
+        self.gameply_mode = gameply_mode
         self.options = [
             ("continue", lambda: self.continue_pressed()),
             ("exit", lambda: self.exit_pressed())
@@ -100,11 +104,12 @@ class PauseMenu(main.GameMode):
                     return
 
     def continue_pressed(self):
-        self.state = -1
+        # return to gameplay
+        self.loop.set_mode(self.gameply_mode)
 
     def exit_pressed(self):
         import main
-        self.loop.set_mode_and_clear_stack(main.MainMenuMode(self.loop))
+        self.loop.set_mode(main.MainMenuMode(self.loop))
 
     def draw_to_screen(self, screen):
         # make the level underneath fade darker slightly after you've paused
@@ -113,7 +118,7 @@ class PauseMenu(main.GameMode):
         current_darkness = utility_functions.lerp(self.pause_timer / max_darkness_time, 1, max_darkness)
 
         # drawing level underneath this menu
-        self.loop.modes[-2].draw_to_screen(screen, extra_darkness_factor=current_darkness)
+        self.gameply_mode.draw_to_screen(screen, extra_darkness_factor=current_darkness)
 
         screen_size = screen.get_size()
         title_surface = self.title_font.render('PAUSE', True, neon.WHITE)
@@ -132,3 +137,10 @@ class PauseMenu(main.GameMode):
             option_size = option_surface.get_size()
             screen.blit(option_surface, dest=(screen_size[0] // 2 - option_size[0] // 2, option_y))
             option_y += option_size[1]
+
+
+class RetryMenu(main.GameMode):
+    def __init__(self, loop, score, gameplay_mode: GameplayMode):
+        super().__init__(loop)
+        self.score = score
+        self.gameplay_mode = gameplay_mode

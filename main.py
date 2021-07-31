@@ -164,7 +164,7 @@ class MainMenuMode(GameMode):
             option_y += option_size[1]
 
 
-if __name__ == "__main__":
+def _main():
     pygame.init()
     SoundManager.init()
     levelbuilder3d.load_player_art()
@@ -173,3 +173,7 @@ if __name__ == "__main__":
     pygame.display.set_caption("TEMPEST RUN")
     loop = GameLoop()
     loop.start()
+
+
+if __name__ == "__main__":
+    _main()

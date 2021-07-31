@@ -17,11 +17,11 @@ class SettingsMenuMode(main.GameMode):
         super().__init__(loop)
         self.selected_option_idx = 0
         self.options = [
-            ("music", config.Music.volume, [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], 5),
-            ("sound", config.Sound.volume, [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], 5),
-            ("fps", config.Display.fps, [30, 40, 50, 60, 70, 80, 90, 100, 110, 120], 3),
-            ("display", (config.Display.width, config.Display.height), [(480, 270), (960, 540), (1820, 1080)], 2),
-            ("exit", lambda: self.exit_pressed())
+            ["music", config.Music.volume, [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], 5],
+            ["sound", config.Sound.volume, [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], 5],
+            ["fps", config.Display.fps, [30, 40, 50, 60, 70, 80, 90, 100, 110, 120], 3],
+            ["display", (config.Display.width, config.Display.height), [(480, 270), (960, 540), (1820, 1080)], 2],
+            ["exit", lambda: self.exit_pressed()]
         ]
 
         self.title_font = fonts.get_font(config.FontSize.title)
@@ -32,6 +32,10 @@ class SettingsMenuMode(main.GameMode):
 
     def exit_pressed(self):
         SoundManager.play('blip2')
+        config.Music.volume = self.options[0][1]
+        config.Sound.volume = self.options[1][1]
+        config.Display.fps = self.options[2][1]
+        config.Display.width, config.Display.height = self.options[3][1][0], self.options[3][1][1]
         config.save_config()
         self.loop.set_mode(main.MainMenuMode(self.loop))
 
@@ -48,9 +52,18 @@ class SettingsMenuMode(main.GameMode):
                     SoundManager.play("accept")
                     if self.selected_option_idx == len(self.options) - 1:
                         self.options[self.selected_option_idx][1]()
-                    else:
-                        pass
-                    return
+                elif e.key in keybinds.MENU_RIGHT:
+                    if self.options[self.selected_option_idx][1] not in self.options[self.selected_option_idx][2]:
+                        self.options[self.selected_option_idx][1] = self.options[self.selected_option_idx][2][self.options[self.selected_option_idx][3]]
+                    elif self.options[self.selected_option_idx][1] != self.options[self.selected_option_idx][2][-1]:
+                        self.options[self.selected_option_idx][1] =\
+                            self.options[self.selected_option_idx][2][self.options[self.selected_option_idx][2].index(self.options[self.selected_option_idx][1]) + 1]
+                elif e.key in keybinds.MENU_LEFT:
+                    if self.options[self.selected_option_idx][1] not in self.options[self.selected_option_idx][2]:
+                        self.options[self.selected_option_idx][1] = self.options[self.selected_option_idx][2][self.options[self.selected_option_idx][3]]
+                    elif self.options[self.selected_option_idx][1] != self.options[self.selected_option_idx][2][0]:
+                        self.options[self.selected_option_idx][1] =\
+                            self.options[self.selected_option_idx][2][self.options[self.selected_option_idx][2].index(self.options[self.selected_option_idx][1]) - 1]
                 elif e.key in keybinds.MENU_CANCEL:
                     SoundManager.play("blip2")
                     self.exit_pressed()

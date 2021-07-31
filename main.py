@@ -10,7 +10,7 @@ import rendering.levelbuilder3d as levelbuilder3d
 
 
 config.load_config()
-
+print(config.Display.width, config.Display.height)
 
 TARGET_FPS = config.Display.fps if not config.Debug.testmode else -1
 
@@ -166,6 +166,7 @@ class MainMenuMode(GameMode):
 
 def _main():
     pygame.init()
+    config.load_config()
     SoundManager.init()
     levelbuilder3d.load_player_art()
 

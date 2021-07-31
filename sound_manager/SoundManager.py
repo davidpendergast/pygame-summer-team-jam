@@ -44,6 +44,7 @@ class SoundManager:
 
     @classmethod
     def init(cls):
+        config.load_config()
         print("INFO: initializing pygame.mixer...")
         pygame.mixer.init()
         print("INFO: done.")

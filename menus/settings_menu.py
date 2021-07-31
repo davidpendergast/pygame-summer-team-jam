@@ -6,6 +6,7 @@ import rendering.neon as neon
 import util.fonts as fonts
 import main
 from sound_manager.SoundManager import SoundManager
+from rendering import levelbuilder3d
 
 
 config.load_config()
@@ -20,7 +21,7 @@ class SettingsMenuMode(main.GameMode):
             ["music", config.Music.volume, [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], 5],
             ["sound", config.Sound.volume, [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], 5],
             ["fps", config.Display.fps, [30, 40, 50, 60, 70, 80, 90, 100, 110, 120], 3],
-            ["display", (config.Display.width, config.Display.height), [(480, 270), (960, 540), (1820, 1080)], 2],
+            ["display", (config.Display.width, config.Display.height), [(960, 540), (1390, 810), (1820, 1080)], 0],
             ["exit", lambda: self.exit_pressed()]
         ]
 
@@ -37,6 +38,7 @@ class SettingsMenuMode(main.GameMode):
         config.Display.fps = self.options[2][1]
         config.Display.width, config.Display.height = self.options[3][1][0], self.options[3][1][1]
         config.save_config()
+        pygame.display.set_mode((config.Display.width, config.Display.height), pygame.SCALED | pygame.RESIZABLE)
         self.loop.set_mode(main.MainMenuMode(self.loop))
 
     def update(self, dt, events):

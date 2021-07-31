@@ -6,56 +6,56 @@ import config
 _default_config_str = """
 {
     "Display": {
-        "fps": 60
-        "width": 960
-        "height": 540
-        "title": "TEMPEST RUN"
-        "camera_bob": True
-        "use_player_art": True
-        }
+        "fps": 60,
+        "width": 960,
+        "height": 540,
+        "title": "TEMPEST RUN",
+        "camera_bob": True,
+        "use_player_art": True,
+        },
 
     "FontSize": {
-        "title": 64
-        "option": 36
-        "info": 24
-        "score": 30
-        }
+        "title": 64,
+        "option": 36,
+        "info": 24,
+        "score": 30,
+        },
 
     "Music": {
-        "enabled": False
-        "volume": 0.4
-        }
+        "enabled": False,
+        "volume": 0.4,
+        },
 
     "Sound": {
-        "enabled": True
-        "volume": 0.2
-        }
+        "enabled": True,
+        "volume": 0.2,
+        },
 
     "Debug": {
-        "use_neon": True
-        "testmode": False
-        }
+        "use_neon": True,
+        "testmode": False,
+        },
 
     "KeyBinds": {
         "Game": {
-            "jump": [pygame.K_w, pygame.K_UP, pygame.K_SPACE]
-            "left": [pygame.K_a, pygame.K_LEFT]
-            "right": [pygame.K_d, pygame.K_RIGHT]
-            "slide": [pygame.K_s, pygame.K_DOWN]
-            "reset": [pygame.K_r]
-            }
+            "jump": [pygame.K_w, pygame.K_UP, pygame.K_SPACE],
+            "left": [pygame.K_a, pygame.K_LEFT],
+            "right": [pygame.K_d, pygame.K_RIGHT],
+            "slide": [pygame.K_s, pygame.K_DOWN],
+            "reset": [pygame.K_r],
+            },
 
         "Menu": {
-            "up": [pygame.K_w, pygame.K_UP]
-            "down": [pygame.K_s, pygame.K_DOWN]
-            "accept": [pygame.K_RETURN, pygame.K_SPACE]
-            "cancel": [pygame.K_ESCAPE]
-            }
+            "up": [pygame.K_w, pygame.K_UP],
+            "down": [pygame.K_s, pygame.K_DOWN],
+            "accept": [pygame.K_RETURN, pygame.K_SPACE],
+            "cancel": [pygame.K_ESCAPE],
+            },
 
         "Toogle": {
-            "neon": [pygame.K_n]
-            "profiler": [pygame.K_F1]
-            }
+            "neon": [pygame.K_n],
+            "profiler": [pygame.K_F1],
+            },
         }
 }
 """

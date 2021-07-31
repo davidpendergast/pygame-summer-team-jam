@@ -148,3 +148,6 @@ cython_debug/
 
 ### JetBrains IDEs
 .idea/
+
+### game configuration file
+config.json

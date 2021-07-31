@@ -118,8 +118,8 @@ class MainMenuMode(GameMode):
         self.loop.set_mode(settings_menu.SettingsMenuMode(self.loop))
 
     def credits_pressed(self):
-        # TODO add credits menu
-        pass
+        import menus.credits_menu as credits_menu
+        self.loop.set_mode(credits_menu.CreditsMenuMode(self.loop, self))
 
     def exit_pressed(self):
         self.loop.running = False

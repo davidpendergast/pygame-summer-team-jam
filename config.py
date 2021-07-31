@@ -6,6 +6,7 @@ class Display:
     width = 960
     height = 540
     title = "TEMPEST RUN"
+    camera_bob = True
 
 
 class FontSize:
@@ -27,7 +28,7 @@ class Sound:
 
 class Debug:
     use_neon = True
-    testmode = True
+    testmode = False
 
 
 class KeyBinds:

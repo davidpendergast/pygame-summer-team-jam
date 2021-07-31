@@ -1,14 +1,16 @@
 from typing import List
-from pygame import Vector3
+from pygame import Vector3, Vector2
+import math
 import rendering.threedee as threedee
 import rendering.neon as neon
 import util.utility_functions as utility_functions
 
 
-def get_ring_points(z, level) -> List[Vector3]:
+def get_ring_points(z, level, rotation=None) -> List[Vector3]:
     n = level.number_of_lanes()
     radius = level.get_radius(z)
-    rotation = level.get_rotation(z)
+    if rotation is None:
+        rotation = level.get_rotation(z)
     res = []
     for i in range(n):
         p = Vector3(radius, 0, z)
@@ -23,10 +25,21 @@ def build_section(z, length, level) -> List[threedee.Line3D]:
     far_ring = get_ring_points(z + length, level)
 
     for i in range(level.number_of_lanes()):
-        ground_lines.append(threedee.Line3D(near_ring[i], far_ring[i], color=neon.BLUE))
-        ground_lines.append(threedee.Line3D(far_ring[i], far_ring[i - 1], color=neon.BLUE))
+        ground_lines.append(threedee.Line3D(near_ring[i], far_ring[i], color=level.get_color(z)))
+        ground_lines.append(threedee.Line3D(far_ring[i], far_ring[i - 1], color=level.get_color(z)))
 
     return ground_lines
+
+
+def get_rotation_to_make_lane_at_bottom(z, lane, level):
+    unrotated_ring_pts = get_ring_points(z, level, rotation=0)
+    pt_left = unrotated_ring_pts[(lane - 1) % level.number_of_lanes()]
+    pt_right = unrotated_ring_pts[lane % level.number_of_lanes()]
+    pt_center = (pt_left + pt_right) / 2
+    res = Vector2(0, -1).as_polar()[1] - Vector2(pt_center.x, pt_center.y).as_polar()[1]
+    if res < 0:
+        res += 360
+    return res
 
 
 def build_obstacle(obs, level) -> List[threedee.Line3D]:

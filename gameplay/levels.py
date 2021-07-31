@@ -3,6 +3,7 @@ from pygame import Vector3, Vector2, Color
 from rendering.threedee import Line3D
 import rendering.neon as neon
 from sound_manager.SoundManager import SoundManager
+import math
 
 
 class Obstacle:
@@ -187,6 +188,7 @@ class Level:
 
     def __init__(self, lanes):
         self._n_lanes = lanes
+        self._rot = 0
 
     def number_of_lanes(self):
         return self._n_lanes
@@ -207,8 +209,11 @@ class Level:
         return neon.BLUE
 
     def get_rotation(self, z: float) -> float:
-        """Returns the level's rotation (along the z-axis) when the camera is at the given z coordinate."""
-        return 0
+        """Returns the level's rotation (along the z-axis), in degrees, when the camera is at the given z coordinate."""
+        return self._rot
+
+    def set_rotation(self, val_in_degrees: float):
+        self._rot = val_in_degrees % 360
 
     def get_radius(self, z: float) -> float:
         """returns: radius of level at the given z coordinate."""
@@ -234,8 +239,17 @@ class InfiniteGeneratingLevel(Level):
         self._obstacle_grid = {}  # (lane_n, cell_idx) -> Obstacle
         self._currently_loaded_cell_range = None  # will be [int, int] if populated
 
+        self.color_dist = 1000  # color changes every X cells
+        self.level_colors_to_use = [neon.BLUE, neon.CYAN, neon.WHITE, neon.YELLOW, neon.ORANGE, neon.BLACK]
+
     def get_cell_length(self):
         return 20
+
+    def get_color(self, z: float):
+        idx1 = int(z // self.color_dist) % len(self.level_colors_to_use)
+        idx2 = int((z // self.color_dist + 1) % len(self.level_colors_to_use))
+        amount = (z % self.color_dist) / self.color_dist
+        return self.level_colors_to_use[idx1].lerp(self.level_colors_to_use[idx2], amount)
 
     def get_player_speed(self, z: float):
         return self.get_cell_length() * 3

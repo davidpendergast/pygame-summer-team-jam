@@ -45,6 +45,8 @@ class KeyBinds:
     class Menu:
         up = [pygame.K_w, pygame.K_UP]
         down = [pygame.K_s, pygame.K_DOWN]
+        right = [pygame.K_d, pygame.K_RIGHT]
+        left = [pygame.K_a, pygame.K_LEFT]
         accept = [pygame.K_RETURN, pygame.K_SPACE]
         cancel = [pygame.K_ESCAPE]
 
@@ -98,6 +100,8 @@ _default_config_str = f"""
         "Menu": \u007b
             "up": [{pygame.K_w}, {pygame.K_UP}],
             "down": [{pygame.K_s}, {pygame.K_DOWN}],
+            "right" : [{pygame.K_d}, {pygame.K_RIGHT}],
+            "left" : [{pygame.K_a}, {pygame.K_LEFT}],
             "accept": [{pygame.K_RETURN}, {pygame.K_SPACE}],
             "cancel": [{pygame.K_ESCAPE}]
             \u007d,
@@ -140,6 +144,8 @@ def load_config():
     KeyBinds.Game.reset = configuration["KeyBinds"]["Game"]["reset"]
     KeyBinds.Menu.up = configuration["KeyBinds"]["Menu"]["up"]
     KeyBinds.Menu.down = configuration["KeyBinds"]["Menu"]["down"]
+    KeyBinds.Menu.right = configuration["KeyBinds"]["Menu"]["right"]
+    KeyBinds.Menu.left = configuration["KeyBinds"]["Menu"]["left"]
     KeyBinds.Menu.accept = configuration["KeyBinds"]["Menu"]["accept"]
     KeyBinds.Menu.cancel = configuration["KeyBinds"]["Menu"]["cancel"]
     KeyBinds.Toogle.neon = configuration["KeyBinds"]["Toogle"]["neon"]

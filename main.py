@@ -87,7 +87,6 @@ class MainMenuMode(GameMode):
 
     def __init__(self, loop: GameLoop):
         super().__init__(loop)
-        self.song = pygame
         self.selected_option_idx = 0
         self.options = [
             ("start", lambda: self.start_pressed()),

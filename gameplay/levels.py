@@ -3,6 +3,7 @@ from pygame import Vector3, Vector2, Color
 from rendering.threedee import Line3D
 import rendering.neon as neon
 from sound_manager.SoundManager import SoundManager
+import math
 
 
 class Obstacle:
@@ -187,6 +188,7 @@ class Level:
 
     def __init__(self, lanes):
         self._n_lanes = lanes
+        self._rot = 0
 
     def number_of_lanes(self):
         return self._n_lanes
@@ -207,8 +209,11 @@ class Level:
         return neon.BLUE
 
     def get_rotation(self, z: float) -> float:
-        """Returns the level's rotation (along the z-axis) when the camera is at the given z coordinate."""
-        return 0
+        """Returns the level's rotation (along the z-axis), in degrees, when the camera is at the given z coordinate."""
+        return self._rot
+
+    def set_rotation(self, val_in_degrees: float):
+        self._rot = val_in_degrees % 360
 
     def get_radius(self, z: float) -> float:
         """returns: radius of level at the given z coordinate."""

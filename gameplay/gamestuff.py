@@ -2,6 +2,7 @@ import pygame
 
 import config
 import main
+import math
 import gameplay.player2d as player2d
 import gameplay.levels as levels
 import rendering.neon as neon
@@ -23,7 +24,7 @@ class GameplayMode(main.GameMode):
 
         self.camera_min_y = -1  # camera y when player is grounded
         self.camera_max_y = 1   # camera y when player is at max jump height
-        self.camera_move_speed_pcnt = 0.1
+        self.camera_move_speed_pcnt = 6
 
         self.camera = threedee.Camera3D()
 
@@ -31,10 +32,14 @@ class GameplayMode(main.GameMode):
         self.camera_z_offset = -40
         self.unload_offset = -30
 
+        self.rotation_speed = 4
+        self.current_rotation = 0
+
         self.foresight = 150
         self.neon_renderer = neon.NeonRenderer()
 
         self.score_font = fonts.get_font(30, name="cool")
+        self.update_level_rotation(1000, snap=True)
 
     def on_mode_start(self):
         SoundManager.play_song('game_theme', fadeout_ms=250, fadein_ms=1000)
@@ -43,7 +48,9 @@ class GameplayMode(main.GameMode):
         self.handle_events(events)
         self.player.update(dt, self.current_level, events)
 
-        self.update_camera_position()
+        self.update_camera_position(dt)
+        self.update_level_rotation(dt)
+
         self.current_level.unload_obstacles(self.camera.position.z + self.unload_offset)
 
         if self.player.is_dead():
@@ -59,23 +66,36 @@ class GameplayMode(main.GameMode):
                 if e.key in keybinds.RESET:
                     self.loop.set_mode(GameplayMode(self.loop))
 
-    def get_ideal_camera_y(self):
-        if self.player.y <= 0 or not config.Display.camera_bob:
-            return self.camera_min_y
-        else:
-            return utility_functions.lerp(min(1, self.player.y / self.player.max_jump_height()),
-                                          self.camera_min_y,
-                                          self.camera_max_y)
-
-    def update_camera_position(self):
+    def update_camera_position(self, dt):
         self.camera.position.z = self.player.z + self.camera_z_offset
 
-        ideal_y = self.get_ideal_camera_y()
+        if self.player.y <= 0 or not config.Display.camera_bob:
+            ideal_y = self.camera_min_y
+        else:
+            ideal_y = utility_functions.lerp(min(1, self.player.y / self.player.max_jump_height()),
+                                             self.camera_min_y,
+                                             self.camera_max_y)
         if abs(self.camera.position.y - ideal_y) < 0.01:
             self.camera.position.y = ideal_y
         else:
             dist = ideal_y - self.camera.position.y
-            self.camera.position.y += dist * self.camera_move_speed_pcnt
+            self.camera.position.y += dist * self.camera_move_speed_pcnt * dt
+
+    def update_level_rotation(self, dt, snap=False):
+        z = self.player.z
+        ideal_rotation = levelbuilder3d.get_rotation_to_make_lane_at_bottom(z, self.player.lane, self.current_level)
+        cur_rotation = self.current_level.get_rotation(z)
+        dist, clockwise = utility_functions.abs_angle_between_angles(cur_rotation, ideal_rotation)
+        if dist < 0.01 or snap:
+            self.current_level.set_rotation(ideal_rotation)
+        else:
+            target_rots = [ideal_rotation - 360, ideal_rotation, ideal_rotation + 360]
+            potential_rotations = [(t - cur_rotation) * self.rotation_speed * dt for t in target_rots]
+            change_in_rotation = min(potential_rotations, key=abs)
+            if abs(change_in_rotation) > dist:
+                self.current_level.set_rotation(ideal_rotation)
+            else:
+                self.current_level.set_rotation(cur_rotation + change_in_rotation)
 
     def draw_to_screen(self, screen, extra_darkness_factor=1, show_score=True):
         screen.fill((0, 0, 0))

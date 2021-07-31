@@ -28,7 +28,7 @@ class Sound:
 
 class Debug:
     use_neon = True
-    testmode = True
+    testmode = False
 
 
 class KeyBinds:

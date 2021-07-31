@@ -45,6 +45,14 @@ def lerp(a: float, v1, v2, restrict_between=True):
         return a * (v2 - v1) + v1
 
 
+def abs_angle_between_angles(a1_deg, a2_deg):
+    """
+    :return: (angle_between, whether the shortest distance is in the positive direction)
+    """
+    phi = abs(a2_deg - a1_deg) % 360
+    return (360 - phi, False) if phi > 180 else (phi, True)
+
+
 def map_from_interval_to_interval(val: float, interval1: List[float], interval2: List[float]):
     """Linearly maps a value from one interval to another
 

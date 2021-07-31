@@ -37,14 +37,14 @@ class NeonLine:
         self.np_points = numpy.array([[round(p.y), round(p.x)] for p in points], numpy.int32).reshape((-1, 1, 2))
         self.width = width
         self.inner_width = inner_width or 1
-        self.inner_color = inner_color or color.lerp(WHITE, 0.5)
+        self.inner_color = inner_color or WHITE
         self.color = color
 
     @staticmethod
     def convert_line2ds_to_neon_lines(line2ds) -> List['NeonLine']:
         # why are there two nearly identical line classes, you ask? i f-d up
         # anyways this method converts a list of Line2Ds into NeonLines~
-        return [NeonLine([l.p1, l.p2], l.width, l.color) for l in line2ds]
+        return [NeonLine([l.p1, l.p2], l.width, l.color, inner_color=l.inner_color) for l in line2ds]
 
 
 class NeonRenderer:
@@ -94,7 +94,7 @@ class NeonRenderer:
 
         # 3rd pass, draw anti-aliased highlight
         for line in lines:
-            self.polylines(self._buf, [line.np_points], False, line.inner_color.lerp((255, 255, 255), 0.7), line.inner_width, lineType=cv2.LINE_AA)
+            self.polylines(self._buf, [line.np_points], False, line.inner_color, line.inner_width, lineType=cv2.LINE_AA)
         self._blur(self._buf, self.highlight_bloom_kernel)
 
         # post processing effects

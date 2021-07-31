@@ -41,10 +41,11 @@ class Line3D:
 
 class Line2D:
 
-    def __init__(self, p1: Vector2, p2: Vector2, color=neon.WHITE, width=1):
+    def __init__(self, p1: Vector2, p2: Vector2, color=neon.WHITE, inner_color=None, width=1):
         self.p1 = p1
         self.p2 = p2
         self.color = color
+        self.inner_color = inner_color
         self.width = width
 
     def __repr__(self):
@@ -110,7 +111,7 @@ class Camera3D:
         proj_mat = perspective_matrix(self.fov_degrees / 180 * math.pi, surface_size[0] / surface_size[1], 0.5, 100000)
         return proj_mat @ view_mat
 
-    def project_to_surface(self, surface, lines: List[Line3D]) -> List[Line2D]:
+    def project_to_surface(self, surface, lines: List[Line3D], depth_shading=None) -> List[Line2D]:
         res = []
         screen_dims = surface.get_size()
         camera_xform = self.get_xform(screen_dims)
@@ -131,9 +132,25 @@ class Camera3D:
                 y1 = screen_dims[1] * (0.5 + point_list[i * 2][1] / w1)
                 x2 = screen_dims[0] * (0.5 + point_list[i * 2 + 1][0] / w2)
                 y2 = screen_dims[1] * (0.5 + point_list[i * 2 + 1][1] / w2)
-                line = Line2D(Vector2(x1, y1), Vector2(x2, y2), color=lines[i].color, width=lines[i].width)
-                # print("line = {} (w1 = {}, w2 = {})".format(line, w1, w2))
-                res.append(line)
+                p1 = Vector2(x1, y1)
+                p2 = Vector2(x2, y2)
+                if depth_shading is None:
+                    inner_color = neon.WHITE
+                    line_color = lines[i].color
+                else:
+                    depth = ((lines[i].p1 + lines[i].p2) / 2 - self.position).length()
+                    if depth <= depth_shading[0]:
+                        inner_color = neon.WHITE
+                        line_color = lines[i].color
+                    elif depth >= depth_shading[1]:
+                        inner_color = neon.BLACK
+                        line_color = neon.BLACK
+                    else:
+                        lerp_amt = (depth - depth_shading[0]) / (depth_shading[1] - depth_shading[0])
+                        line_color = lines[i].color.lerp(neon.BLACK, lerp_amt)
+                        inner_color = neon.WHITE.lerp(neon.BLACK, lerp_amt)
+
+                res.append(Line2D(p1, p2, color=line_color, inner_color=inner_color, width=lines[i].width))
 
         return res
 

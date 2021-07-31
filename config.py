@@ -7,6 +7,7 @@ class Display:
     height = 540
     title = "TEMPEST RUN"
     camera_bob = True
+    use_player_art = True
 
 
 class FontSize:
@@ -17,7 +18,7 @@ class FontSize:
 
 
 class Music:
-    enabled = True
+    enabled = False
     volume = 0.4
 
 

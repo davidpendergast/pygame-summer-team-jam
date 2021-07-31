@@ -29,7 +29,7 @@ class GameplayMode(main.GameMode):
         self.camera = threedee.Camera3D()
 
         self.camera.position.y = self.camera_min_y
-        self.camera_z_offset = -40
+        self.camera_z_offset = -44
         self.unload_offset = -30
 
         self.rotation_speed = 4

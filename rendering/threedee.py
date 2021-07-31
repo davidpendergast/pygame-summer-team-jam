@@ -20,6 +20,13 @@ class Line3D:
     def __repr__(self):
         return "{}(p1={}, p2={}, color={}, width={})".format(type(self).__name__, self.p1, self.p2, self.color, self.width)
 
+    def shift(self, dx=0, dy=0, dz=0, new_color=None, new_width=None) -> 'Line3D':
+        delta = Vector3(dx, dy, dz)
+        return Line3D(self.p1 + delta,
+                      self.p2 + delta,
+                      color=self.color if new_color is None else new_color,
+                      width=self.width if new_width is None else new_width)
+
     @staticmethod
     def make_lines_from_list(list_of_vec3s: List[Vector3], closed=False, color=neon.WHITE, width=1) -> List['Line3D']:
         res = []

@@ -9,13 +9,7 @@ from sound_manager.SoundManager import SoundManager
 import rendering.levelbuilder3d as levelbuilder3d
 
 
-config.load_config()
-print(config.Display.width, config.Display.height)
-
 TARGET_FPS = config.Display.fps if not config.Debug.testmode else -1
-
-# this is only the default size, use pygame.display.get_surface().get_size() to get the current size.
-W, H = config.Display.width, config.Display.height
 
 
 class GameLoop:
@@ -195,13 +189,17 @@ class MainMenuMode(GameMode):
         lines_to_draw = self.bg_camera.project_to_surface(screen, all_3d_lines, depth_shading=(0, 100))
         self.bg_renderer.draw_lines(screen, neon.NeonLine.convert_line2ds_to_neon_lines(lines_to_draw))
 
+
 def _main():
+    config.load_configs_from_disk()
+
     pygame.init()
-    config.load_config()
     SoundManager.init()
     levelbuilder3d.load_player_art()
 
-    pygame.display.set_mode((W, H), pygame.SCALED | pygame.RESIZABLE)
+    size = config.Display.width, config.Display.height
+
+    pygame.display.set_mode(size, pygame.SCALED | pygame.RESIZABLE)
     pygame.display.set_caption("TEMPEST RUN")
     loop = GameLoop()
     loop.start()

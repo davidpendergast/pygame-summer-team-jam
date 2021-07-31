@@ -20,7 +20,7 @@ class FontSize:
 
 
 class Music:
-    enabled = False
+    enabled = True
     volume = 0.4
 
 
@@ -72,7 +72,7 @@ _default_config_str = f"""
         \u007d,
 
     "Music": \u007b
-        "enabled": false,
+        "enabled": true,
         "volume": 0.4
         \u007d,
 

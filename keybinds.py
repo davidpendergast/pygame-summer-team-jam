@@ -1,17 +1,21 @@
-import pygame
+import config
 
-# Keybinds for the game
 
-JUMP = [pygame.K_w, pygame.K_UP, pygame.K_SPACE]
-LEFT = [pygame.K_a, pygame.K_LEFT]
-RIGHT = [pygame.K_d, pygame.K_RIGHT]
-SLIDE = [pygame.K_s, pygame.K_DOWN]
-RESET = [pygame.K_r]
+config.load_config()
 
-MENU_UP = [pygame.K_w, pygame.K_UP]
-MENU_DOWN = [pygame.K_s, pygame.K_DOWN]
-MENU_ACCEPT = [pygame.K_RETURN, pygame.K_SPACE]
-MENU_CANCEL = [pygame.K_ESCAPE]
 
-TOGGLE_NEON = [pygame.K_n]
-TOGGLE_PROFILER = [pygame.K_F1]
+JUMP = config.KeyBinds.Game.jump
+LEFT = config.KeyBinds.Game.left
+RIGHT = config.KeyBinds.Game.right
+SLIDE = config.KeyBinds.Game.slide
+RESET = config.KeyBinds.Game.reset
+
+MENU_UP = config.KeyBinds.Menu.up
+MENU_DOWN = config.KeyBinds.Menu.down
+MENU_RIGHT = config.KeyBinds.Menu.right
+MENU_LEFT = config.KeyBinds.Menu.left
+MENU_ACCEPT = config.KeyBinds.Menu.accept
+MENU_CANCEL = config.KeyBinds.Menu.cancel
+
+TOGGLE_NEON = config.KeyBinds.Toogle.neon
+TOGGLE_PROFILER = config.KeyBinds.Toogle.profiler

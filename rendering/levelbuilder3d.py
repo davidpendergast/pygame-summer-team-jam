@@ -25,8 +25,8 @@ def build_section(z, length, level) -> List[threedee.Line3D]:
     far_ring = get_ring_points(z + length, level)
 
     for i in range(level.number_of_lanes()):
-        ground_lines.append(threedee.Line3D(near_ring[i], far_ring[i], color=neon.BLUE))
-        ground_lines.append(threedee.Line3D(far_ring[i], far_ring[i - 1], color=neon.BLUE))
+        ground_lines.append(threedee.Line3D(near_ring[i], far_ring[i], color=level.get_color(z)))
+        ground_lines.append(threedee.Line3D(far_ring[i], far_ring[i - 1], color=level.get_color(z)))
 
     return ground_lines
 

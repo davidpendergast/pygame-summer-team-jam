@@ -6,7 +6,6 @@ import rendering.neon as neon
 import util.fonts as fonts
 import main
 from sound_manager.SoundManager import SoundManager
-from rendering import levelbuilder3d
 
 
 config.load_config()

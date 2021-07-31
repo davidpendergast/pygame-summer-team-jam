@@ -28,9 +28,9 @@ class HelpMenuMode(GameMode):
         self.n_squares = 25
         self.squares = [self._generate_square() for _ in range(self.n_squares)]  # format -> [x, y, angle, speed]
 
-        self.title_font = fonts.get_font(config.TITLE_SIZE)
-        self.option_font = fonts.get_font(config.OPTION_SIZE)
-        self.info_font = fonts.get_font(config.INFO_SIZE)
+        self.title_font = fonts.get_font(config.FontSize.title)
+        self.option_font = fonts.get_font(config.FontSize.option)
+        self.info_font = fonts.get_font(config.FontSize.info)
 
     def _generate_square(self):
         screen_w, screen_h = pygame.display.get_surface().get_size()

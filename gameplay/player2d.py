@@ -1,6 +1,5 @@
 import pygame
 import keybinds
-from typing import List
 from sound_manager.SoundManager import SoundManager
 
 import util.fonts as fonts
@@ -39,12 +38,12 @@ class Player:
         return self.current_mode
 
     def move_left(self):
-        if not self.is_jumping() and not self.is_dead():
+        if not self.is_dead():
             SoundManager.play('blip')
             self.lane -= 1
 
     def move_right(self):
-        if not self.is_jumping() and not self.is_dead():
+        if not self.is_dead():
             SoundManager.play('blip')
             self.lane += 1
 
@@ -99,9 +98,15 @@ class Player:
                     self.run()
 
     def _handle_movement(self, dt):
+        keys = pygame.key.get_pressed()
+        dty = 25
+        if (keys[key] for key in keybinds.JUMP):
+            dty -= 0
+        if (keys[key] for key in keybinds.SLIDE):
+            dty += 10
         self.y += self.dy * dt
         if self.y > 0:
-            self.dy -= 25 * dt
+            self.dy -= dty * dt
         if self.y < 0:
             self.y = 0
             self.dy = 0
@@ -131,5 +136,3 @@ class Player:
         # print(self.collided)
         if self.collided:
             fonts.Text(display, 'COLLIDED', 550, 100, 25).draw()
-
-

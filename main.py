@@ -7,10 +7,11 @@ import util.profiling as profiling
 import util.fonts as fonts
 from sound_manager.SoundManager import SoundManager
 
-TARGET_FPS = config.BASE_FPS if not config.TESTMODE else -1
+
+TARGET_FPS = config.Display.fps if not config.Debug.testmode else -1
 
 # this is only the default size, use pygame.display.get_surface().get_size() to get the current size.
-W, H = config.DISP_WID, config.DISP_HEI
+W, H = config.Display.width, config.Display.height
 
 
 class GameLoop:
@@ -44,8 +45,8 @@ class GameLoop:
                 # global keybinds
                 if e.type == pygame.KEYDOWN:
                     if e.key in keybinds.TOGGLE_NEON:
-                        config.USE_NEON = not config.USE_NEON
-                        print("INFO: toggling neon to: {}".format(config.USE_NEON))
+                        config.Debug.use_neon = not config.Debug.use_neon
+                        print("INFO: toggling neon to: {}".format(config.Debug.use_neon))
                     if e.key in keybinds.TOGGLE_PROFILER:
                         profiling.get_instance().toggle()
             cur_mode = self.current_mode
@@ -55,7 +56,7 @@ class GameLoop:
 
             pygame.display.flip()
 
-            if config.TESTMODE:
+            if config.Debug.testmode:
                 pygame.display.set_caption(f"TEMPEST RUN {int(self.clock.get_fps())} FPS")
 
             dt = self.clock.tick(TARGET_FPS) / 1000.0
@@ -94,8 +95,8 @@ class MainMenuMode(GameMode):
             ("exit", lambda: self.exit_pressed())
         ]
 
-        self.title_font = fonts.get_font(config.TITLE_SIZE)
-        self.option_font = fonts.get_font(config.OPTION_SIZE)
+        self.title_font = fonts.get_font(config.FontSize.title)
+        self.option_font = fonts.get_font(config.FontSize.option)
 
     def on_mode_start(self):
         SoundManager.play_song("menu_theme", fadein_ms=3000)

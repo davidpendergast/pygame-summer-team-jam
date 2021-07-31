@@ -60,10 +60,10 @@ class Player:
         if not self.is_jumping():
             SoundManager.play('jump')
             self.set_mode('jump')
-            self.dy = 10
+            self.dy = 5
 
     def max_jump_height(self):
-        return 2.5  # TODO calulate this for real
+        return 0.85  # this only matters for rendering. an approximate value is ok.
 
     def slide(self):
         if self.is_running():
@@ -76,13 +76,14 @@ class Player:
         return int(self.z / 10) * 10
 
     def update(self, dt, level, events):
-        self._handle_inputs(events)
+        pressed = pygame.key.get_pressed()
+        self._handle_inputs(events, pressed)
         self._handle_collisions(level)
         if not self.is_dead():
             self.set_speed(level.get_player_speed(self.z))
-            self._handle_movement(dt)
+            self._handle_movement(dt, pressed)
 
-    def _handle_inputs(self, events):
+    def _handle_inputs(self, events, pressed):
         for e in events:
             if e.type == pygame.KEYDOWN:
                 if e.key in keybinds.JUMP:
@@ -97,21 +98,27 @@ class Player:
                 if e.key in keybinds.SLIDE and self.is_sliding():
                     self.run()
 
-    def _handle_movement(self, dt):
-        keys = pygame.key.get_pressed()
-        dty = 25
-        if (keys[key] for key in keybinds.JUMP):
-            dty -= 0
-        if (keys[key] for key in keybinds.SLIDE):
-            dty += 10
+        if any(pressed[k] for k in keybinds.SLIDE):
+            self.slide()
+
+    def _handle_movement(self, dt, pressed):
+        if self.y > 0 or self.dy != 0:
+            # print("INFO: player.y = {}".format(self.y))
+            fall_speed = 25
+            if any(pressed[key] for key in keybinds.JUMP):
+                fall_speed -= 10  # slight jump boost if you hold the jump key down
+            if any(pressed[key] for key in keybinds.SLIDE):
+                fall_speed += 30
+            self.dy -= fall_speed * dt
+
         self.y += self.dy * dt
-        if self.y > 0:
-            self.dy -= dty * dt
+
         if self.y < 0:
             self.y = 0
             self.dy = 0
             if not self.is_sliding():
                 self.set_mode('run')
+
         self.move_forward(dt)
 
     def _handle_collisions(self, level):

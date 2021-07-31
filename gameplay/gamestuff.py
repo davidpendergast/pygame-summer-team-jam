@@ -21,8 +21,13 @@ class GameplayMode(main.GameMode):
         self.player = player2d.Player()
         self.current_level = levels.InfiniteGeneratingLevel(9)
 
+        self.camera_min_y = -1  # camera y when player is grounded
+        self.camera_max_y = 1   # camera y when player is at max jump height
+        self.camera_move_speed_pcnt = 0.1
+
         self.camera = threedee.Camera3D()
-        self.camera.position.y = -1
+
+        self.camera.position.y = self.camera_min_y
         self.camera_z_offset = -40
         self.unload_offset = -30
 
@@ -38,7 +43,7 @@ class GameplayMode(main.GameMode):
         self.handle_events(events)
         self.player.update(dt, self.current_level, events)
 
-        self.camera.position.z = self.player.z + self.camera_z_offset
+        self.update_camera_position()
         self.current_level.unload_obstacles(self.camera.position.z + self.unload_offset)
 
         if self.player.is_dead():
@@ -53,6 +58,24 @@ class GameplayMode(main.GameMode):
                     self.loop.set_mode(PauseMenu(self.loop, self))
                 if e.key in keybinds.RESET:
                     self.loop.set_mode(GameplayMode(self.loop))
+
+    def get_ideal_camera_y(self):
+        if self.player.y <= 0 or not config.Display.camera_bob:
+            return self.camera_min_y
+        else:
+            return utility_functions.lerp(min(1, self.player.y / self.player.max_jump_height()),
+                                          self.camera_min_y,
+                                          self.camera_max_y)
+
+    def update_camera_position(self):
+        self.camera.position.z = self.player.z + self.camera_z_offset
+
+        ideal_y = self.get_ideal_camera_y()
+        if abs(self.camera.position.y - ideal_y) < 0.01:
+            self.camera.position.y = ideal_y
+        else:
+            dist = ideal_y - self.camera.position.y
+            self.camera.position.y += dist * self.camera_move_speed_pcnt
 
     def draw_to_screen(self, screen, extra_darkness_factor=1, show_score=True):
         screen.fill((0, 0, 0))

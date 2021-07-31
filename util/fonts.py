@@ -4,9 +4,6 @@ import util.utility_functions as utils
 import config
 
 
-config.load_config()
-
-
 _DISP_WID = config.Display.width
 _CACHED_FONTS = {}  # (size: int, bold: bool, font_name: str) -> Font
 

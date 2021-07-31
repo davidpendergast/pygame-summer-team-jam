@@ -117,7 +117,12 @@ class GameplayMode(main.GameMode):
 
         all_lines.extend(levelbuilder3d.get_player_shape(self.player, self.current_level))
 
-        all_2d_lines = self.camera.project_to_surface(screen, all_lines)
+        if "disable spooky mode":
+            depth_shading = None
+        else:
+            depth_shading = (8 * self.foresight / 10, self.foresight)
+
+        all_2d_lines = self.camera.project_to_surface(screen, all_lines, depth_shading=depth_shading)
         neon_lines = neon.NeonLine.convert_line2ds_to_neon_lines(all_2d_lines)
 
         self.neon_renderer.draw_lines(screen, neon_lines, extra_darkness_factor=extra_darkness_factor)

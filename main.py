@@ -9,13 +9,7 @@ from sound_manager.SoundManager import SoundManager
 import rendering.levelbuilder3d as levelbuilder3d
 
 
-config.load_config()
-print(config.Display.width, config.Display.height)
-
 TARGET_FPS = config.Display.fps if not config.Debug.testmode else -1
-
-# this is only the default size, use pygame.display.get_surface().get_size() to get the current size.
-W, H = config.Display.width, config.Display.height
 
 
 class GameLoop:
@@ -102,6 +96,13 @@ class MainMenuMode(GameMode):
         self.title_font = fonts.get_font(config.FontSize.title)
         self.option_font = fonts.get_font(config.FontSize.option)
 
+        import gameplay.levels as levels
+        import rendering.threedee as threedee
+        import rendering.neon as neon
+        self.bg_level = levels.InfiniteGeneratingLevel(10)
+        self.bg_camera = threedee.Camera3D()
+        self.bg_renderer = neon.NeonRenderer()
+
     def on_mode_start(self):
         SoundManager.play_song("menu_theme", fadein_ms=3000)
 
@@ -118,8 +119,8 @@ class MainMenuMode(GameMode):
         self.loop.set_mode(settings_menu.SettingsMenuMode(self.loop))
 
     def credits_pressed(self):
-        # TODO add credits menu
-        pass
+        import menus.credits_menu as credits_menu
+        self.loop.set_mode(credits_menu.CreditsMenuMode(self.loop, self))
 
     def exit_pressed(self):
         self.loop.running = False
@@ -142,8 +143,13 @@ class MainMenuMode(GameMode):
                     self.exit_pressed()
                     return
 
+        self._update_bg(dt)
+
     def draw_to_screen(self, screen: pygame.Surface):
         screen.fill((0, 0, 0))
+
+        self._draw_bg(screen)
+
         screen_size = screen.get_size()
         title_surface = self.title_font.render('TEMPEST RUN', True, neon.WHITE)
 
@@ -163,14 +169,37 @@ class MainMenuMode(GameMode):
             screen.blit(option_surface, dest=(screen_size[0] // 2 - option_size[0] // 2, option_y))
             option_y += option_size[1]
 
+    def _update_bg(self, dt):
+        rot_speed = 10    # degrees per sec
+        move_speed = 5  # units per sec
+        self.bg_camera.position.z += dt * move_speed
+        self.bg_camera.position.y = -1
+        self.bg_level.set_rotation(self.bg_level.get_rotation(self.bg_camera.position.z) + rot_speed * dt)
+
+    def _draw_bg(self, screen):
+        import rendering.levelbuilder3d as levelbuilder3d
+        import rendering.neon as neon
+        cur_z = self.bg_camera.position.z
+        cell_len = 20
+
+        all_3d_lines = []
+        for i in range(-1, 20):
+            all_3d_lines.extend(levelbuilder3d.build_section((i + cur_z // cell_len) * cell_len, cell_len, self.bg_level))
+
+        lines_to_draw = self.bg_camera.project_to_surface(screen, all_3d_lines, depth_shading=(0, 100))
+        self.bg_renderer.draw_lines(screen, neon.NeonLine.convert_line2ds_to_neon_lines(lines_to_draw))
+
 
 def _main():
+    config.load_configs_from_disk()
+
     pygame.init()
-    config.load_config()
     SoundManager.init()
     levelbuilder3d.load_player_art()
 
-    pygame.display.set_mode((W, H), pygame.SCALED | pygame.RESIZABLE)
+    size = config.Display.width, config.Display.height
+
+    pygame.display.set_mode(size, pygame.SCALED | pygame.RESIZABLE)
     pygame.display.set_caption("TEMPEST RUN")
     loop = GameLoop()
     loop.start()

@@ -44,7 +44,6 @@ class SoundManager:
 
     @classmethod
     def init(cls):
-        config.load_config()
         print("INFO: initializing pygame.mixer...")
         pygame.mixer.init()
         print("INFO: done.")
@@ -96,11 +95,15 @@ class SoundManager:
     @classmethod
     def set_song_volume_multiplier(cls, mult):
         cls.SONG_VOLUME_MULTIPLIER = mult
-        pygame.mixer.music.set_volume(cls.get_song_volume())
+        cls.update_song_volume()
 
     @classmethod
     def get_song_volume(cls):
         return max(0, min(1, cls.SONG_VOLUME_MULTIPLIER * config.Music.volume))
+
+    @classmethod
+    def update_song_volume(cls):
+        pygame.mixer.music.set_volume(cls.get_song_volume())
 
     @classmethod
     def play_song(cls, song_id, fadeout_ms=1000, fadein_ms=500):

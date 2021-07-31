@@ -18,9 +18,9 @@ class CreditsMenuMode(GameMode):
 
         self.selected_option_idx = 0
         self.options = [
-            ("bydariogamer", None),
             ("ghast", None),
             ("tank king", None),
+            ("bydariogamer", None),
             ("spooky", None)
         ]
 
@@ -69,12 +69,18 @@ class CreditsMenuMode(GameMode):
 
         for e in events:
             if e.type == pygame.KEYDOWN:
-                if e.key in keybinds.LEFT:
+                if e.key in keybinds.MENU_LEFT:
                     SoundManager.play('blip')
                     self.selected_option_idx = (self.selected_option_idx - 1) % len(self.options)
-                elif e.key in keybinds.RIGHT:
+                elif e.key in keybinds.MENU_RIGHT:
                     SoundManager.play('blip')
                     self.selected_option_idx = (self.selected_option_idx + 1) % len(self.options)
+                if e.key in keybinds.MENU_UP:
+                    SoundManager.play('blip')
+                    self.selected_option_idx = (self.selected_option_idx - 2) % len(self.options)
+                elif e.key in keybinds.MENU_DOWN:
+                    SoundManager.play('blip')
+                    self.selected_option_idx = (self.selected_option_idx + 2) % len(self.options)
                 elif e.key in keybinds.MENU_CANCEL:
                     SoundManager.play('blip2')
                     self.exit_pressed()
@@ -93,7 +99,7 @@ class CreditsMenuMode(GameMode):
         screen.blit(title_surface, dest=(screen_size[0] // 2 - title_size[0] // 2,
                                          title_y))
 
-        option_y = max(screen_size[1] // 2, title_y + title_size[1])
+        option_y = max(int(screen_size[1] * 0.4), title_y + title_size[1])
         msg = ''
         for i in range(len(self.options)):
             option_text = self.options[i][0]
@@ -108,8 +114,11 @@ class CreditsMenuMode(GameMode):
                     msg = 'programming'
                 elif i == 3:
                     msg = 'sfx & bgm'
-            option_surface = self.option_font.render(option_text.lower(), False, color)
+            option_surface = self.option_font.render(option_text.upper(), False, color)
             option_size = option_surface.get_size()
-            screen.blit(option_surface, dest=((screen_size[0] // (len(self.options) + 1)) * (i + 1) - option_size[0] // 2, option_y))
+            option_x = screen_size[0] // 6 + (screen_size[0] - 2 * screen_size[0] // 6) // 2 * (i % 2 + 0.5) - option_size[0] // 2
+            screen.blit(option_surface, dest=(option_x, option_y))
             msg_surf = self.info_font.render(msg.upper(), False, neon.WHITE)
-            screen.blit(msg_surf, msg_surf.get_rect(center=(screen_size[0] // 2, screen_size[1] * 2 / 3)))
+            screen.blit(msg_surf, msg_surf.get_rect(center=(screen_size[0] // 2, screen_size[1] * 3 / 4)))
+            if i == 1:
+                option_y += option_size[1] + 20

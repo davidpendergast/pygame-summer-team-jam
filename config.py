@@ -1,6 +1,7 @@
 import pygame
 import json
 import pathlib
+import traceback
 
 
 class Display:
@@ -55,72 +56,65 @@ class KeyBinds:
         profiler = [pygame.K_F1]
 
 
-_default_config_str = f"""
-\u007b
-    "Display": \u007b
+_default_configs = {
+    "Display": {
         "fps": 60,
         "width": 960,
         "height": 540,
         "title": "TEMPEST RUN",
-        "camera_bob": true,
-        "use_player_art": true
-        \u007d,
+        "camera_bob": True,
+        "use_player_art": True
+        },
 
-    "FontSize": \u007b
+    "FontSize": {
         "title": 64,
         "option": 36,
         "info": 24,
         "score": 30
-        \u007d,
+        },
 
-    "Music": \u007b
-        "enabled": true,
+    "Music": {
+        "enabled": True,
         "volume": 0.4
-        \u007d,
+        },
 
-    "Sound": \u007b
-        "enabled": true,
-        "volume": 0.2
-        \u007d,
+    "Sound": {
+        "enabled": True,
+        "volume": 0.4
+        },
 
-    "Debug": \u007b
-        "use_neon": true,
-        "testmode": false
-        \u007d,
+    "Debug": {
+        "use_neon": True,
+        "testmode": False
+        },
 
-    "KeyBinds": \u007b
-        "Game": \u007b
-            "jump": [{pygame.K_w}, {pygame.K_UP}, {pygame.K_SPACE}],
-            "left": [{pygame.K_a}, {pygame.K_LEFT}],
-            "right": [{pygame.K_d}, {pygame.K_RIGHT}],
-            "slide": [{pygame.K_s}, {pygame.K_DOWN}],
-            "reset": [{pygame.K_r}]
-            \u007d,
+    "KeyBinds": {
+        "Game": {
+            "jump": [pygame.K_w, pygame.K_UP, pygame.K_SPACE],
+            "left": [pygame.K_a, pygame.K_LEFT],
+            "right": [pygame.K_d, pygame.K_RIGHT],
+            "slide": [pygame.K_s, pygame.K_DOWN],
+            "reset": [pygame.K_r]
+            },
 
-        "Menu": \u007b
-            "up": [{pygame.K_w}, {pygame.K_UP}],
-            "down": [{pygame.K_s}, {pygame.K_DOWN}],
-            "right" : [{pygame.K_d}, {pygame.K_RIGHT}],
-            "left" : [{pygame.K_a}, {pygame.K_LEFT}],
-            "accept": [{pygame.K_RETURN}, {pygame.K_SPACE}],
-            "cancel": [{pygame.K_ESCAPE}]
-            \u007d,
+        "Menu": {
+            "up": [pygame.K_w, pygame.K_UP],
+            "down": [pygame.K_s, pygame.K_DOWN],
+            "right" : [pygame.K_d, pygame.K_RIGHT],
+            "left" : [pygame.K_a, pygame.K_LEFT],
+            "accept": [pygame.K_RETURN, pygame.K_SPACE],
+            "cancel": [pygame.K_ESCAPE]
+            },
 
-        "Toogle": \u007b
-            "neon": [{pygame.K_n}],
-            "profiler": [{pygame.K_F1}]
-            \u007d
-        \u007d
-\u007d
-"""
+        "Toogle": {
+            "neon": [pygame.K_n],
+            "profiler": [pygame.K_F1]
+            }
+        }
+    }
 
 
-def load_config():
-    path = pathlib.Path("config.json")
-    if not path.exists():
-        path.touch()
-        path.write_text(_default_config_str)
-    configuration = json.load(open(path, "r"))
+def _apply_configs_from_json(configuration):
     Display.fps = configuration["Display"]["fps"]
     Display.width = configuration["Display"]["width"]
     Display.height = configuration["Display"]["height"]
@@ -137,6 +131,7 @@ def load_config():
     Sound.volume = configuration["Sound"]["volume"]
     Debug.use_neon = configuration["Debug"]["use_neon"]
     Debug.testmode = configuration["Debug"]["testmode"]
+
     KeyBinds.Game.jump = configuration["KeyBinds"]["Game"]["jump"]
     KeyBinds.Game.left = configuration["KeyBinds"]["Game"]["left"]
     KeyBinds.Game.right = configuration["KeyBinds"]["Game"]["right"]
@@ -152,11 +147,11 @@ def load_config():
     KeyBinds.Toogle.profiler = configuration["KeyBinds"]["Toogle"]["profiler"]
 
 
-def save_config():
-    path = pathlib.Path("config.json")
-    if not path.exists():
-        path.touch()
-    configuration = json.loads(_default_config_str)
+_apply_configs_from_json(_default_configs)  # initialize configs to defaults
+
+
+def _get_configs_as_json_dict():
+    configuration = json.loads(json.dumps(_default_configs))  # making a new copy
     configuration["Display"]["fps"] = Display.fps
     configuration["Display"]["width"] = Display.width
     configuration["Display"]["height"] = Display.height
@@ -173,6 +168,7 @@ def save_config():
     configuration["Sound"]["volume"] = Sound.volume
     configuration["Debug"]["use_neon"] = Debug.use_neon
     configuration["Debug"]["testmode"] = Debug.testmode
+
     configuration["KeyBinds"]["Game"]["jump"] = KeyBinds.Game.jump
     configuration["KeyBinds"]["Game"]["left"] = KeyBinds.Game.left
     configuration["KeyBinds"]["Game"]["right"] = KeyBinds.Game.right
@@ -184,4 +180,32 @@ def save_config():
     configuration["KeyBinds"]["Menu"]["cancel"] = KeyBinds.Menu.cancel
     configuration["KeyBinds"]["Toogle"]["neon"] = KeyBinds.Toogle.neon
     configuration["KeyBinds"]["Toogle"]["profiler"] = KeyBinds.Toogle.profiler
-    json.dump(configuration, open(path, "w"))
+
+    return configuration
+
+
+def load_configs_from_disk():
+    _apply_configs_from_json(_default_configs)
+    path = pathlib.Path("config.json")
+    try:
+        if path.exists():
+            with open(path, "r") as f:
+                _apply_configs_from_json(json.load(f))
+            print("INFO: loaded configs from: {}".format(path))
+    except Exception:
+        print("ERROR: failed to load configs from: {}".format(path))
+        traceback.print_exc()
+
+
+def save_configs_to_disk():
+    path = pathlib.Path("config.json")
+    try:
+        if not path.exists():
+            path.touch()
+        as_json_dict = _get_configs_as_json_dict()
+        with open(path, "w") as f:
+            json.dump(as_json_dict, f, indent="")
+        print("INFO: saved configs to: {}".format(path))
+    except Exception:
+        print("ERROR: failed to save configs to: {}".format(path))
+        traceback.print_exc()

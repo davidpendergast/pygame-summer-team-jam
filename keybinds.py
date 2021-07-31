@@ -1,9 +1,6 @@
 import config
 
 
-config.load_config()
-
-
 JUMP = config.KeyBinds.Game.jump
 LEFT = config.KeyBinds.Game.left
 RIGHT = config.KeyBinds.Game.right

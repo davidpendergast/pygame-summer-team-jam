@@ -8,9 +8,6 @@ import main
 from sound_manager.SoundManager import SoundManager
 
 
-config.load_config()
-
-
 class SettingsMenuMode(main.GameMode):
 
     def __init__(self, loop: main.GameLoop):
@@ -30,14 +27,25 @@ class SettingsMenuMode(main.GameMode):
     def on_mode_start(self):
         SoundManager.play_song("menu_theme", fadein_ms=3000)
 
-    def exit_pressed(self):
-        SoundManager.play('blip2')
+    def _update_volumes(self):
         config.Music.volume = self.options[0][1]
         config.Sound.volume = self.options[1][1]
+        SoundManager.update_song_volume()
+
+    def exit_pressed(self):
+        SoundManager.play('blip2')
+        self._update_volumes()
         config.Display.fps = self.options[2][1]
-        config.Display.width, config.Display.height = self.options[3][1][0], self.options[3][1][1]
-        config.save_config()
-        pygame.display.set_mode((config.Display.width, config.Display.height), pygame.SCALED | pygame.RESIZABLE)
+
+        old_resolution = config.Display.width, config.Display.height
+        new_resolution = self.options[3][1][0], self.options[3][1][1]
+        config.Display.width, config.Display.height = new_resolution
+
+        config.save_configs_to_disk()
+
+        if old_resolution != new_resolution:
+            pygame.display.set_mode((config.Display.width, config.Display.height), pygame.SCALED | pygame.RESIZABLE)
+
         self.loop.set_mode(main.MainMenuMode(self.loop))
 
     def update(self, dt, events):
@@ -54,17 +62,23 @@ class SettingsMenuMode(main.GameMode):
                     if self.selected_option_idx == len(self.options) - 1:
                         self.options[self.selected_option_idx][1]()
                 elif e.key in keybinds.MENU_RIGHT:
+                    SoundManager.play("blip")
                     if self.options[self.selected_option_idx][1] not in self.options[self.selected_option_idx][2]:
                         self.options[self.selected_option_idx][1] = self.options[self.selected_option_idx][2][self.options[self.selected_option_idx][3]]
+                        self._update_volumes()
                     elif self.options[self.selected_option_idx][1] != self.options[self.selected_option_idx][2][-1]:
                         self.options[self.selected_option_idx][1] =\
                             self.options[self.selected_option_idx][2][self.options[self.selected_option_idx][2].index(self.options[self.selected_option_idx][1]) + 1]
+                        self._update_volumes()
                 elif e.key in keybinds.MENU_LEFT:
+                    SoundManager.play("blip")
                     if self.options[self.selected_option_idx][1] not in self.options[self.selected_option_idx][2]:
                         self.options[self.selected_option_idx][1] = self.options[self.selected_option_idx][2][self.options[self.selected_option_idx][3]]
+                        self._update_volumes()
                     elif self.options[self.selected_option_idx][1] != self.options[self.selected_option_idx][2][0]:
                         self.options[self.selected_option_idx][1] =\
                             self.options[self.selected_option_idx][2][self.options[self.selected_option_idx][2].index(self.options[self.selected_option_idx][1]) - 1]
+                        self._update_volumes()
                 elif e.key in keybinds.MENU_CANCEL:
                     SoundManager.play("blip2")
                     self.exit_pressed()

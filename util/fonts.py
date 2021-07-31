@@ -1,7 +1,13 @@
 import pygame
 import time
 import util.utility_functions as utils
+import config
 
+
+config.load_config()
+
+
+_DISP_WID = config.Display.width
 _CACHED_FONTS = {}  # (size: int, bold: bool, font_name: str) -> Font
 
 _FONT_PATHS = {
@@ -13,6 +19,7 @@ _FONT_PATHS = {
 
 
 def get_font(size, name="lame", bold=False):
+    # size = int(size / 960 * _DISP_WID)
     if bold:
         name = name + "_bold"
     if name not in _FONT_PATHS:
@@ -21,14 +28,6 @@ def get_font(size, name="lame", bold=False):
     if key not in _CACHED_FONTS:
         raw_path = _FONT_PATHS[name]
         safe_path = utils.resource_path(raw_path)
-        _CACHED_FONTS[key] = pygame.font.Font(safe_path, size)
-    return _CACHED_FONTS[key]
-
-
-def get_cool_font(size):
-    key = (size, False, "cool")
-    if key not in _CACHED_FONTS:
-        safe_path = utils.resource_path(_path_to_cool_font)
         _CACHED_FONTS[key] = pygame.font.Font(safe_path, size)
     return _CACHED_FONTS[key]
 

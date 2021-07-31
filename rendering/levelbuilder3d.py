@@ -1,6 +1,10 @@
 from typing import List
 from pygame import Vector3, Vector2
 import math
+import os
+import traceback
+import json
+import config
 import rendering.threedee as threedee
 import rendering.neon as neon
 import util.utility_functions as utility_functions
@@ -81,22 +85,108 @@ def build_rect(z_start, length, level, lane_n, hover_height, color, width, with_
     return res
 
 
+_CACHED_PLAYER_ART = {}
+
+
+def load_player_art(w=0.8, h=0.5):
+    min_x = float(1000)
+    max_x = float(-1000)
+    min_y = float(1000)
+    max_y = float(-1000)
+
+    anims = ["jump", "run", "slide"]
+
+    # first pass just finds the max / mins of the set of animations
+    for anim_name in anims:
+        try:
+            raw_path = "assets/wireframe_models/player/" + anim_name
+            safe_path = utility_functions.resource_path(raw_path)
+
+            for filename in sorted(os.listdir(safe_path)):
+                if filename.endswith(".json"):
+                    with open(utility_functions.resource_path(raw_path + "/" + filename)) as f:
+                        for line in json.load(f):
+                            for pt in line:
+                                x = float(pt[0])
+                                y = float(pt[1])
+                                min_x = min(min_x, x)
+                                max_x = max(max_x, x)
+                                min_y = min(min_y, y)
+                                max_y = max(max_y, y)
+        except Exception:
+            print("ERROR: failed to load player art of type: {}".format(anim_name))
+            traceback.print_exc()
+
+    # 2nd pass builds the actual lines
+    # yes we're loading the files a 2nd time but it's 4am i don't care
+    for anim_name in anims:
+        frames = []
+        try:
+            raw_path = "assets/wireframe_models/player/" + anim_name
+            safe_path = utility_functions.resource_path(raw_path)
+
+            for filename in sorted(os.listdir(safe_path)):
+                lines_for_frame = []
+                lines_for_frame_xflip = []
+                if filename.endswith(".json"):
+                    with open(utility_functions.resource_path(raw_path + "/" + filename)) as f:
+                        for line in json.load(f):
+                            norm_pts = []
+                            norm_pts_xflip = []
+                            for pt in line:
+                                x = float(pt[0])
+                                y = float(pt[1])
+                                norm_pts.append((
+                                    utility_functions.map_from_interval_to_interval(x, [min_x, max_x], [-w/2, w/2]),
+                                    utility_functions.map_from_interval_to_interval(y, [max_y, min_y], [0, h])
+                                ))
+                                norm_pts_xflip.append((
+                                    utility_functions.map_from_interval_to_interval(x, [min_x, max_x], [w/2, -w/2]),
+                                    utility_functions.map_from_interval_to_interval(y, [max_y, min_y], [0, h])
+                                ))
+                            lines_for_frame.append(threedee.Line3D(Vector3(norm_pts[0][0], norm_pts[0][1], 0),
+                                                                   Vector3(norm_pts[1][0], norm_pts[1][1], 0)))
+                            lines_for_frame_xflip.append(threedee.Line3D(Vector3(norm_pts_xflip[0][0], norm_pts_xflip[0][1], 0),
+                                                                   Vector3(norm_pts_xflip[1][0], norm_pts_xflip[1][1], 0)))
+                frames.append(lines_for_frame)
+                frames.append(lines_for_frame_xflip)
+            _CACHED_PLAYER_ART[anim_name] = frames
+        except Exception:
+            pass
+
+
 def get_player_shape_at_origin(player) -> List[threedee.Line3D]:
-    # TODO add cool outline graphic
-    # for now it's just a square
-    width = 0.5 if not player.is_sliding() else 0.6
-    height = 0.4 if not player.is_sliding() else 0.2
+
+    art_to_use = None
+    if player.is_jumping():
+        art_to_use = "jump"
+    elif player.is_sliding() or player.is_dead():
+        art_to_use = "slide"
+    elif player.is_running():
+        art_to_use = "run"
+
     dist_from_ground = 0.3 * player.y / player.max_jump_height()
     color = neon.YELLOW if not player.is_dead() else neon.RED
-    top_left = Vector3(-width / 2.0, height + dist_from_ground, 0)
-    top_right = Vector3(width / 2.0, height + dist_from_ground, 0)
-    bot_left = Vector3(-width / 2.0, dist_from_ground, 0)
-    bot_right = Vector3(width / 2.0, dist_from_ground, 0)
+    width = 2
 
-    return [threedee.Line3D(top_left, top_right, color=color, width=2),
-            threedee.Line3D(top_right, bot_right, color=color, width=2),
-            threedee.Line3D(bot_right, bot_left, color=color, width=2),
-            threedee.Line3D(bot_left, top_left, color=color, width=2)]
+    if not config.Display.use_player_art or art_to_use not in _CACHED_PLAYER_ART or len(_CACHED_PLAYER_ART[art_to_use]) == 0:
+        # just a rectangle
+        width = 0.5 if not player.is_sliding() else 0.6
+        height = 0.4 if not player.is_sliding() else 0.2
+        top_left = Vector3(-width / 2.0, height + dist_from_ground, 0)
+        top_right = Vector3(width / 2.0, height + dist_from_ground, 0)
+        bot_left = Vector3(-width / 2.0, dist_from_ground, 0)
+        bot_right = Vector3(width / 2.0, dist_from_ground, 0)
+
+        return [threedee.Line3D(top_left, top_right, color=color, width=width),
+                threedee.Line3D(top_right, bot_right, color=color, width=width),
+                threedee.Line3D(bot_right, bot_left, color=color, width=width),
+                threedee.Line3D(bot_left, top_left, color=color, width=width)]
+    else:
+        frame_n = int(player.z) // 20
+        all_frames = _CACHED_PLAYER_ART[art_to_use]
+        lines_in_frame = all_frames[frame_n % len(all_frames)]
+        return [l.shift(dy=dist_from_ground, new_color=color, new_width=width) for l in lines_in_frame]
 
 
 def get_player_shape(player, level) -> List[threedee.Line3D]:

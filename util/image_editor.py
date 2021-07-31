@@ -46,7 +46,7 @@ class Button:
     def draw(self):
         color = (255, 255, 255) if self.active else (0, 0, 255)
         pygame.draw.rect(self.display, color, self.rect, 5)
-        font = pygame.font.Font('EightBit Atari-Ascprin.ttf', self.text_size)
+        font = pygame.font.Font('assets/fonts/EightBit Atari-Ascprin.ttf', self.text_size)
         text = font.render(self.msg, False, color)
         self.display.blit(text, text.get_rect(center=self.rect.center))
 

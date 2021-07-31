@@ -6,6 +6,7 @@ import config
 import util.profiling as profiling
 import util.fonts as fonts
 from sound_manager.SoundManager import SoundManager
+import rendering.levelbuilder3d as levelbuilder3d
 
 
 TARGET_FPS = config.Display.fps if not config.Debug.testmode else -1
@@ -159,6 +160,7 @@ class MainMenuMode(GameMode):
 if __name__ == "__main__":
     pygame.init()
     SoundManager.init()
+    levelbuilder3d.load_player_art()
 
     pygame.display.set_mode((W, H), pygame.SCALED | pygame.RESIZABLE)
     pygame.display.set_caption("TEMPEST RUN")

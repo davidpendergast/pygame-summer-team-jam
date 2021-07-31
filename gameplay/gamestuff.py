@@ -29,7 +29,7 @@ class GameplayMode(main.GameMode):
         self.foresight = 150
         self.neon_renderer = neon.NeonRenderer()
 
-        self.score_font = pygame.font.Font("assets/fonts/VectorBattle.ttf", 30)
+        self.score_font = fonts.get_font(30, name="cool")
 
     def on_mode_start(self):
         SoundManager.play_song('game_theme', fadeout_ms=250, fadein_ms=1000)
@@ -54,7 +54,7 @@ class GameplayMode(main.GameMode):
                 if e.key in keybinds.RESET:
                     self.loop.set_mode(GameplayMode(self.loop))
 
-    def draw_to_screen(self, screen, extra_darkness_factor=1):
+    def draw_to_screen(self, screen, extra_darkness_factor=1, show_score=True):
         screen.fill((0, 0, 0))
         all_lines = []
         cell_length = self.current_level.get_cell_length()
@@ -78,7 +78,9 @@ class GameplayMode(main.GameMode):
         neon_lines = neon.NeonLine.convert_line2ds_to_neon_lines(all_2d_lines)
 
         self.neon_renderer.draw_lines(screen, neon_lines, extra_darkness_factor=extra_darkness_factor)
-        screen.blit(self.score_font.render(str(self.player.get_score()), False, neon.LIME), (20, 20))
+
+        if show_score:
+            screen.blit(self.score_font.render(str(self.player.get_score()), False, neon.LIME), (20, 20))
 
 
 class PauseMenu(main.GameMode):
@@ -217,7 +219,7 @@ class RetryMenu(main.GameMode):
         # TODO fade underlying level to a color, for coolness
 
         # drawing level underneath this menu
-        self.gameplay_mode.draw_to_screen(screen, extra_darkness_factor=current_darkness)
+        self.gameplay_mode.draw_to_screen(screen, extra_darkness_factor=current_darkness, show_score=False)
 
         screen_size = screen.get_size()
         title_surface = self.title_font.render('GAME OVER', True, neon.WHITE)

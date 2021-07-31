@@ -9,6 +9,9 @@ from sound_manager.SoundManager import SoundManager
 import rendering.levelbuilder3d as levelbuilder3d
 
 
+config.load_config()
+
+
 TARGET_FPS = config.Display.fps if not config.Debug.testmode else -1
 
 # this is only the default size, use pygame.display.get_surface().get_size() to get the current size.
@@ -91,6 +94,7 @@ class MainMenuMode(GameMode):
         self.options = [
             ("start", lambda: self.start_pressed()),
             ("help", lambda: self.help_pressed()),
+            ("settings", lambda: self.settings_pressed()),
             ("credits", lambda: self.credits_pressed()),
             ("exit", lambda: self.exit_pressed())
         ]
@@ -108,6 +112,10 @@ class MainMenuMode(GameMode):
     def help_pressed(self):
         import menus.help_menu as help_menu
         self.loop.set_mode(help_menu.HelpMenuMode(self.loop, self))
+
+    def settings_pressed(self):
+        import menus.settings_menu as settings_menu
+        self.loop.set_mode(settings_menu.SettingsMenuMode(self.loop))
 
     def credits_pressed(self):
         # TODO add credits menu

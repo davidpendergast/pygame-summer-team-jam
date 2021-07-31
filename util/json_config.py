@@ -1,63 +1,64 @@
 import json
 import pathlib
 import config
+import pygame
 
 
-_default_config_str = """
-{
-    "Display": {
+_default_config_str = f"""
+\u007b
+    "Display": \u007b
         "fps": 60,
         "width": 960,
         "height": 540,
         "title": "TEMPEST RUN",
-        "camera_bob": True,
-        "use_player_art": True,
-        },
+        "camera_bob": true,
+        "use_player_art": true
+        \u007d,
 
-    "FontSize": {
+    "FontSize": \u007b
         "title": 64,
         "option": 36,
         "info": 24,
-        "score": 30,
-        },
+        "score": 30
+        \u007d,
 
-    "Music": {
-        "enabled": False,
-        "volume": 0.4,
-        },
+    "Music": \u007b
+        "enabled": false,
+        "volume": 0.4
+        \u007d,
 
-    "Sound": {
-        "enabled": True,
-        "volume": 0.2,
-        },
+    "Sound": \u007b
+        "enabled": true,
+        "volume": 0.2
+        \u007d,
 
-    "Debug": {
-        "use_neon": True,
-        "testmode": False,
-        },
+    "Debug": \u007b
+        "use_neon": true,
+        "testmode": false
+        \u007d,
 
-    "KeyBinds": {
-        "Game": {
-            "jump": [pygame.K_w, pygame.K_UP, pygame.K_SPACE],
-            "left": [pygame.K_a, pygame.K_LEFT],
-            "right": [pygame.K_d, pygame.K_RIGHT],
-            "slide": [pygame.K_s, pygame.K_DOWN],
-            "reset": [pygame.K_r],
-            },
+    "KeyBinds": \u007b
+        "Game": \u007b
+            "jump": [{pygame.K_w}, {pygame.K_UP}, {pygame.K_SPACE}],
+            "left": [{pygame.K_a}, {pygame.K_LEFT}],
+            "right": [{pygame.K_d}, {pygame.K_RIGHT}],
+            "slide": [{pygame.K_s}, {pygame.K_DOWN}],
+            "reset": [{pygame.K_r}]
+            \u007d,
 
-        "Menu": {
-            "up": [pygame.K_w, pygame.K_UP],
-            "down": [pygame.K_s, pygame.K_DOWN],
-            "accept": [pygame.K_RETURN, pygame.K_SPACE],
-            "cancel": [pygame.K_ESCAPE],
-            },
+        "Menu": \u007b
+            "up": [{pygame.K_w}, {pygame.K_UP}],
+            "down": [{pygame.K_s}, {pygame.K_DOWN}],
+            "accept": [{pygame.K_RETURN}, {pygame.K_SPACE}],
+            "cancel": [{pygame.K_ESCAPE}]
+            \u007d,
 
-        "Toogle": {
-            "neon": [pygame.K_n],
-            "profiler": [pygame.K_F1],
-            },
-        }
-}
+        "Toogle": \u007b
+            "neon": [{pygame.K_n}],
+            "profiler": [{pygame.K_F1}]
+            \u007d
+        \u007d
+\u007d
 """
 
 

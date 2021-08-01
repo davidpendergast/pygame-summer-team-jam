@@ -5,6 +5,7 @@ import rendering.neon as neon
 from sound_manager.SoundManager import SoundManager
 import util.utility_functions as utils
 import time
+import random
 
 
 class Obstacle:
@@ -275,6 +276,7 @@ class GenerationParameters:
                 if z1 <= z <= z2:
                     return utils.lerp((z - z1) / (z2 - z1), self.speeds[i-1][1], self.speeds[i][1])
 
+
 class InfiniteGeneratingLevel(Level):
 
     def __init__(self, lanes, gen_params=None):
@@ -307,7 +309,10 @@ class InfiniteGeneratingLevel(Level):
 
     def generate_obstacle_at_cell(self, n, i) -> Obstacle:
         """Subclasses can override this to implement custom generation logic."""
-        import random
+        if n == 0 and i < 5:
+            # don't let obstacles spawn right in your face at the start of a run
+            return None
+
         if random.random() < 0.333 * min(1, i / 20):
             r = random.randint(0, 3)
             cs = self.get_cell_length()

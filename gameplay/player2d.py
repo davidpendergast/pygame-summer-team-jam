@@ -18,6 +18,8 @@ class Player:
         self.modes = ['run', 'jump', 'slide', 'dead']
         self.current_mode = self.modes[0]
 
+        self.last_z_pos = z  # used for collision detection
+
         self._dead_since = 0  # time of death, in seconds since epoch
         self._last_mode_before_death = None
 
@@ -64,6 +66,7 @@ class Player:
             self.lane += 1
 
     def move_forward(self, dt):
+        self.last_z_pos = self.z
         self.z += self.speed * dt
 
     def get_lane(self, total_lanes):
@@ -119,7 +122,6 @@ class Player:
 
     def _handle_movement(self, dt, pressed):
         if self.y > 0 or self.dy != 0:
-            # print("INFO: player.y = {}".format(self.y))
             fall_speed = 25
             if any(pressed[key] for key in keybinds.JUMP):
                 fall_speed -= 10  # slight jump boost if you hold the jump key down
@@ -142,7 +144,7 @@ class Player:
             return
         else:
             lane_n = self.get_lane(level.number_of_lanes())
-            obstacles = level.get_all_obstacles_between(lane_n, self.z, self.z + self.length)
+            obstacles = level.get_all_obstacles_between(lane_n, self.last_z_pos, self.z + self.length)
             for obs in obstacles:
                 if obs.handle_potential_collision(self):
                     self.set_mode('dead')

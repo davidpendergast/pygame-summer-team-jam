@@ -3,6 +3,7 @@ from pygame import Vector3, Color
 from rendering.threedee import Line3D
 import rendering.neon as neon
 from sound_manager.SoundManager import SoundManager
+import util.utility_functions as utils
 import time
 
 
@@ -42,7 +43,7 @@ class Obstacle:
         """
         if player.is_dead() or self._is_dead:
             return False
-        if player.z + player.length / 2 < self.z or self.z + self.length < player.z:
+        if player.z + player.length / 2 < self.z or self.z + self.length < player.last_z_pos:
             return False
 
         if player.is_jumping():
@@ -241,18 +242,40 @@ class Level:
         pass
 
 
+class GenerationParameters:
+
+    def __init__(self):
+        self.cell_length = 20     # how far apart obstacles are
+        self.speeds = [(0, 60),   # at z = [0], the speed will be [1]. In between, values are interpolated linearly.
+                       (3000, 90),
+                       (10000, 120),   # 120 is very fast but still playable
+                       (100000, 200)]  # 200 is insane
+
+    def get_player_speed(self, z):
+        if z <= self.speeds[0][0]:
+            return self.speeds[0][1]
+        elif z >= self.speeds[-1][0]:
+            return self.speeds[-1][1]
+        else:
+            for i in range(1, len(self.speeds)):
+                z1 = self.speeds[i-1][0]
+                z2 = self.speeds[i][0]
+                if z1 <= z <= z2:
+                    return utils.lerp((z - z1) / (z2 - z1), self.speeds[i-1][1], self.speeds[i][1])
+
 class InfiniteGeneratingLevel(Level):
 
-    def __init__(self, lanes):
+    def __init__(self, lanes, gen_params=None):
         super().__init__(lanes)
         self._obstacle_grid = {}  # (lane_n, cell_idx) -> Obstacle
         self._currently_loaded_cell_range = None  # will be [int, int] if populated
+        self._gen_params = gen_params if gen_params is not None else GenerationParameters()
 
         self.color_dist = 1000  # color changes every X cells
         self.level_colors_to_use = [neon.BLUE, neon.CYAN, neon.WHITE, neon.YELLOW, neon.ORANGE, neon.BLACK]
 
     def get_cell_length(self):
-        return 20
+        return self._gen_params.cell_length
 
     def get_color(self, z: float):
         idx1 = int(z // self.color_dist) % len(self.level_colors_to_use)
@@ -261,7 +284,7 @@ class InfiniteGeneratingLevel(Level):
         return self.level_colors_to_use[idx1].lerp(self.level_colors_to_use[idx2], amount)
 
     def get_player_speed(self, z: float):
-        return self.get_cell_length() * 3
+        return self._gen_params.get_player_speed(z)
 
     def _generate_obstacles(self, cell_start, cell_end):
         for n in range(self.number_of_lanes()):

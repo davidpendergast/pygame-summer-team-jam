@@ -14,6 +14,7 @@ class Display:
 
 
 class FontSize:
+    # These are normalized to a display height of 540 px
     title = 64
     option = 36
     info = 24

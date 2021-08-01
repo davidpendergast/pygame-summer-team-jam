@@ -17,7 +17,7 @@ class SettingsMenuMode(main.GameMode):
             ["music", config.Music.volume, [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], 5],
             ["sound", config.Sound.volume, [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], 5],
             ["fps", config.Display.fps, [30, 40, 50, 60, 70, 80, 90, 100, 110, 120], 3],
-            ["display", (config.Display.width, config.Display.height), [(960, 540), (1390, 810), (1820, 1080)], 0],
+            ["display", (config.Display.width, config.Display.height), [(600, 300), (960, 540), (1390, 810), (1820, 1080)], 0],
             ["exit", lambda: self.exit_pressed()]
         ]
 

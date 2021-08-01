@@ -35,6 +35,7 @@ class Sound:
 class Debug:
     use_neon = True
     fps_test = False
+    jumping_enemies = False
 
 
 class KeyBinds:
@@ -88,7 +89,8 @@ _default_configs = {
 
     "Debug": {
         "use_neon": True,
-        "fps_test": False
+        "fps_test": False,
+        "jumping_enemies": False
         },
 
     "KeyBinds": {
@@ -135,6 +137,7 @@ def _apply_configs_from_json(configuration):
     Sound.volume = configuration["Sound"]["volume"]
     Debug.use_neon = configuration["Debug"]["use_neon"]
     Debug.fps_test = configuration["Debug"]["fps_test"]
+    Debug.jumping_enemies = configuration["Debug"]["jumping_enemies"]
 
     KeyBinds.Game.jump = configuration["KeyBinds"]["Game"]["jump"]
     KeyBinds.Game.left = configuration["KeyBinds"]["Game"]["left"]
@@ -173,6 +176,7 @@ def _get_configs_as_json_dict():
     configuration["Sound"]["volume"] = Sound.volume
     configuration["Debug"]["use_neon"] = Debug.use_neon
     configuration["Debug"]["fps_test"] = Debug.fps_test
+    configuration["Debug"]["jumping_enemies"] = Debug.jumping_enemies
 
     configuration["KeyBinds"]["Game"]["jump"] = KeyBinds.Game.jump
     configuration["KeyBinds"]["Game"]["left"] = KeyBinds.Game.left

@@ -113,7 +113,7 @@ class GameplayMode(main.GameMode):
             obstacles = self.current_level.get_all_obstacles_between(n, z, z + self.foresight)
             for obs in reversed(obstacles):
                 # add them from from back to front so they overlap properly
-                all_lines.extend(levelbuilder3d.build_obstacle(obs, self.current_level))
+                all_lines.extend(levelbuilder3d.build_obstacle(obs, self.current_level, self.player))
 
         all_lines.extend(levelbuilder3d.get_player_shape(self.player, self.current_level))
 

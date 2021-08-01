@@ -41,6 +41,9 @@ class Obstacle:
     def should_squeeze(self):
         return True
 
+    def should_rise_with_player(self):
+        return False
+
     def handle_potential_collision(self, player) -> bool:
         """
         :return: whether the player should die as a result of this collision.
@@ -150,6 +153,9 @@ class Enemy(Obstacle):
 
     def should_squeeze(self):
         return False
+
+    def should_rise_with_player(self):
+        return True
 
     def generate_3d_model_at_origin(self) -> List[Line3D]:
         # ooh, scary

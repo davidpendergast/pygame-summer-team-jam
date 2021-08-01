@@ -61,7 +61,7 @@ class CreditsMenuMode(GameMode):
     def update(self, dt, events):
         for i in self.squares:
             i[2] += i[3] * dt * 100
-            i[1] -= abs(i[3]) * dt  * 100
+            i[1] -= abs(i[3]) * dt * 100
         self.squares = [s for s in self.squares if s[1] > -50]  # purge squares that fell off the top of the screen
 
         while len(self.squares) < self.n_squares:

@@ -2,7 +2,6 @@ import pygame
 
 import config
 import main
-import math
 import gameplay.player2d as player2d
 import gameplay.levels as levels
 import rendering.neon as neon

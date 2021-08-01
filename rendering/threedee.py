@@ -292,4 +292,3 @@ if __name__ == "__main__":
         pygame.display.update()
         pygame.display.set_caption(str(int(clock.get_fps())))
         clock.tick(60)
-

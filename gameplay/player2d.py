@@ -57,11 +57,29 @@ class Player:
         return self._last_mode_before_death
 
     def get_death_message(self):
-        if self._obstacle_that_killed_me is not None:
-            return self._obstacle_that_killed_me.get_death_message()
+        if self.get_score() < 1000:
+            if self._obstacle_that_killed_me is not None:
+                return self._obstacle_that_killed_me.get_death_message()
+            else:
+                # should never be seen
+                return "player was killed by the guardians"
         else:
-            # should never be seen
-            return "player was killed by the guardians"
+            congrat_msgs = {
+                2000: "Good attempt!",
+                3000: "You can do better!",
+                4000: "Is that all you got?",
+                5000: "You're getting the hang of it now!",
+                7500: "Great run!",
+                10000: "Excellent run!",
+                15000: "Super run!",
+                20000: "Amazing run!",
+            }
+
+            for score_thresh in congrat_msgs:
+                if self.get_score() < score_thresh:
+                    return congrat_msgs[score_thresh]
+
+            return "Epic run!"
 
     def move_left(self):
         if not self.is_dead():

@@ -106,7 +106,7 @@ class MainMenuMode(GameMode):
         self.bg_renderer = neon.NeonRenderer()
 
     def on_mode_start(self):
-        SoundManager.play_song("menu_theme", fadein_ms=3000)
+        SoundManager.play_song("menu_theme", fadein_ms=0)
 
     def start_pressed(self):
         import gameplay.gamestuff  # shh don't tell pylint about this

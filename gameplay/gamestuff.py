@@ -56,7 +56,7 @@ class GameplayMode(main.GameMode):
         if self.player.is_dead():
             score = self.player.get_score()
             highscores.add_new_score(score)
-            self.loop.set_mode(RetryMenu(self.loop, score, self))
+            self.loop.set_mode(RetryMenu(self.loop, score, self.player.get_death_message(), self))
 
     def handle_events(self, events):
         for e in events:
@@ -113,14 +113,15 @@ class GameplayMode(main.GameMode):
             obstacles = self.current_level.get_all_obstacles_between(n, z, z + self.foresight)
             for obs in reversed(obstacles):
                 # add them from from back to front so they overlap properly
-                all_lines.extend(levelbuilder3d.build_obstacle(obs, self.current_level))
+                all_lines.extend(levelbuilder3d.build_obstacle(obs, self.current_level, self.player))
 
         all_lines.extend(levelbuilder3d.get_player_shape(self.player, self.current_level))
 
-        if "disable spooky mode":
-            depth_shading = None
-        else:
+        if config.Display.depth_shade:
+            # sorry tank, I just think it's a cool option <3
             depth_shading = (8 * self.foresight / 10, self.foresight)
+        else:
+            depth_shading = None
 
         all_2d_lines = self.camera.project_to_surface(screen, all_lines, depth_shading=depth_shading)
         neon_lines = neon.NeonLine.convert_line2ds_to_neon_lines(all_2d_lines)
@@ -209,7 +210,7 @@ class PauseMenu(main.GameMode):
 
 class RetryMenu(main.GameMode):
 
-    def __init__(self, loop, score, gameplay_mode: GameplayMode):
+    def __init__(self, loop, score, death_message, gameplay_mode: GameplayMode):
         super().__init__(loop)
         self.score = score
         self.best_score = highscores.get_best()
@@ -224,10 +225,11 @@ class RetryMenu(main.GameMode):
         self.option_font = fonts.get_font(config.FontSize.option)
         self.info_font = fonts.get_font(config.FontSize.info)
 
+        self.death_message = death_message
+
         self.pause_timer = 0  # how long we've been paused
 
     def on_mode_start(self):
-        SoundManager.play('blip2')
         SoundManager.set_song_volume_multiplier(0.5)
 
     def on_mode_end(self):
@@ -270,12 +272,17 @@ class RetryMenu(main.GameMode):
         self.gameplay_mode.draw_to_screen(screen, extra_darkness_factor=current_darkness, show_score=False)
 
         screen_size = screen.get_size()
-        title_surface = self.title_font.render('GAME OVER', True, neon.WHITE)
 
+        title_surface = self.title_font.render('GAME OVER', True, neon.WHITE)
         title_size = title_surface.get_size()
         title_y = screen_size[1] // 3 - title_size[1] // 2
         screen.blit(title_surface, dest=(screen_size[0] // 2 - title_size[0] // 2, title_y))
-        cur_y = title_y + title_size[1]
+        cur_y = title_y + int(title_size[1] * 0.9)
+
+        death_msg_surface = self.info_font.render(self.death_message.upper(), True, neon.WHITE)
+        death_msg_size = death_msg_surface.get_size()
+        screen.blit(death_msg_surface, dest=(screen_size[0] // 2 - death_msg_size[0] // 2, cur_y))
+        cur_y += int(death_msg_size[1] * 2)
 
         subtitle_surface1 = self.info_font.render("SCORE: {}".format(self.score), True, neon.WHITE)
         subtitle_surface1_size = subtitle_surface1.get_size()
@@ -285,7 +292,7 @@ class RetryMenu(main.GameMode):
         subtitle_surface2 = self.info_font.render("BEST: {}".format(self.best_score), True, neon.WHITE)
         subtitle_surface2_size = subtitle_surface2.get_size()
         screen.blit(subtitle_surface2, dest=(screen_size[0] // 2 - subtitle_surface2_size[0] // 2, cur_y))
-        cur_y += subtitle_surface2_size[1]
+        cur_y += int(subtitle_surface2_size[1] * 2)
 
         option_y = max(screen_size[1] // 2, cur_y)
         for i in range(len(self.options)):

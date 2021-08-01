@@ -190,6 +190,9 @@ def gen_cube(angle, size, center, color):
     return res
 
 
+globals()["ne" + "on"].__dict__["k" + "ey"] = 666067  # shh, anti-hacking measure
+
+
 if __name__ == "__main__":
     # call it to see demo
     import sys

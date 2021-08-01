@@ -5,6 +5,7 @@ import rendering.neon as neon
 from sound_manager.SoundManager import SoundManager
 import util.utility_functions as utils
 import time
+import random
 
 
 class Obstacle:
@@ -31,11 +32,17 @@ class Obstacle:
         # will be a List[Line3D] if present
         self._cached_3d_model = None
 
+    def get_death_message(self):
+        return "avoid obstacles!"
+
     def get_color(self):
         return self.color
 
     def should_squeeze(self):
         return True
+
+    def should_rise_with_player(self):
+        return False
 
     def handle_potential_collision(self, player) -> bool:
         """
@@ -118,6 +125,9 @@ class Spikes(Obstacle):
     def __init__(self, lane, z, length):
         super().__init__(lane, z, length, neon.RED, True, False)
 
+    def get_death_message(self):
+        return "jump over spikes!"
+
     def generate_3d_model_at_origin(self) -> List[Line3D]:
         height = 0.2
         pts = [
@@ -138,8 +148,14 @@ class Enemy(Obstacle):
     def __init__(self, lane, z, length):
         super().__init__(lane, z, length, neon.LIME, False, True)
 
+    def get_death_message(self):
+        return "slide through enemies!"
+
     def should_squeeze(self):
         return False
+
+    def should_rise_with_player(self):
+        return True
 
     def generate_3d_model_at_origin(self) -> List[Line3D]:
         # ooh, scary
@@ -159,6 +175,9 @@ class Wall(Obstacle):
 
     def __init__(self, lane, z, length):
         super().__init__(lane, z, length, neon.PURPLE, False, False)
+
+    def get_death_message(self):
+        return "avoid walls!"
 
     def generate_3d_model_at_origin(self) -> List[Line3D]:
         height = 0.5
@@ -263,6 +282,7 @@ class GenerationParameters:
                 if z1 <= z <= z2:
                     return utils.lerp((z - z1) / (z2 - z1), self.speeds[i-1][1], self.speeds[i][1])
 
+
 class InfiniteGeneratingLevel(Level):
 
     def __init__(self, lanes, gen_params=None):
@@ -295,7 +315,10 @@ class InfiniteGeneratingLevel(Level):
 
     def generate_obstacle_at_cell(self, n, i) -> Obstacle:
         """Subclasses can override this to implement custom generation logic."""
-        import random
+        if n == 0 and i < 5:
+            # don't let obstacles spawn right in your face at the start of a run
+            return None
+
         if random.random() < 0.333 * min(1, i / 20):
             r = random.randint(0, 3)
             cs = self.get_cell_length()

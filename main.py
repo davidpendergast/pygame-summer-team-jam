@@ -7,9 +7,10 @@ import util.profiling as profiling
 import util.fonts as fonts
 from sound_manager.SoundManager import SoundManager
 import rendering.levelbuilder3d as levelbuilder3d
+import gameplay.highscores as highscores
 
 
-TARGET_FPS = config.Display.fps if not config.Debug.testmode else -1
+TARGET_FPS = config.Display.fps if not config.Debug.fps_test else -1
 
 
 class GameLoop:
@@ -54,8 +55,8 @@ class GameLoop:
 
             pygame.display.flip()
 
-            if config.Debug.testmode:
-                pygame.display.set_caption(f"TEMPEST RUN {int(self.clock.get_fps())} FPS")
+            if config.Debug.fps_test:
+                pygame.display.set_caption(f"{config.Display.title} {int(self.clock.get_fps())} FPS")
 
             dt = self.clock.tick(TARGET_FPS) / 1000.0
 
@@ -190,17 +191,27 @@ class MainMenuMode(GameMode):
         self.bg_renderer.draw_lines(screen, neon.NeonLine.convert_line2ds_to_neon_lines(lines_to_draw))
 
 
+def create_or_recreate_window():
+    size = config.Display.width, config.Display.height
+
+    pygame.display.set_mode(size, pygame.SCALED | pygame.RESIZABLE)
+    pygame.display.set_caption(config.Display.title)
+    # TODO set icon
+
+
 def _main():
     config.load_configs_from_disk()
+
+    # create config.json on game start if it's been deleted
+    if not config.get_config_path().exists():
+        config.save_configs_to_disk()
 
     pygame.init()
     SoundManager.init()
     levelbuilder3d.load_player_art()
+    create_or_recreate_window()
+    highscores.load_score()
 
-    size = config.Display.width, config.Display.height
-
-    pygame.display.set_mode(size, pygame.SCALED | pygame.RESIZABLE)
-    pygame.display.set_caption("TEMPEST RUN")
     loop = GameLoop()
     loop.start()
 

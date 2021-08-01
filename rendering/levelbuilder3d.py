@@ -53,19 +53,30 @@ EXPLOSION_ROT_SPEED = 20
 EXPLOSION_SRC_POINT = Vector3(0, 0, 0)
 
 
-def build_obstacle(obs, level) -> List[threedee.Line3D]:
+def build_obstacle(obs, level, player) -> List[threedee.Line3D]:
     model = obs.get_model()
 
-    time_dead = obs.get_time_dead()
-    if time_dead > 1:
-        return []  # it's gone
-    elif time_dead <= 0:
-        pass  # just use normal model
-    elif time_dead > 0:
-        model = blow_up(model,
-                        EXPLOSION_SRC_POINT,
-                        EXPLOSION_DIST * (time_dead / EXPLOSION_DURATION),
-                        rotation_speed=EXPLOSION_ROT_SPEED)
+    if not config.Debug.jumping_enemies:
+        # This makes enemies explode when you slide through them.
+        time_dead = obs.get_time_dead()
+        if time_dead > 1:
+            return []  # it's gone
+        elif time_dead <= 0:
+            pass
+        elif time_dead > 0:
+            model = blow_up(model,
+                            EXPLOSION_SRC_POINT,
+                            EXPLOSION_DIST * (time_dead / EXPLOSION_DURATION),
+                            rotation_speed=EXPLOSION_ROT_SPEED)
+    else:
+        # this makes enemies jump when the player approaches, so the player slides underneath them
+        # instead of killing them. It makes it a little more clear that you can't jump over them,
+        # but I don't really like it.
+        if obs.should_rise_with_player() and (obs.lane - player.lane) % level.number_of_lanes() == 0:
+            z_range = 30
+            z_dist = abs(obs.z - player.z)
+            if z_dist < z_range:
+                model = [l.shift(dy=0.4 * (1 - z_dist / z_range)) for l in model]
     return align_shape_to_level_surface(model,
                                         obs.z,
                                         obs.z + obs.length,

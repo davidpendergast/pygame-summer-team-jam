@@ -15,8 +15,9 @@ _FONT_PATHS = {
 }
 
 
-def get_font(size, name="lame", bold=False):
-    # size = int(size / 960 * _DISP_WID)
+def get_font(size, name="lame", bold=False, normalized=True):
+    if normalized:
+        size = int(size * pygame.display.get_surface().get_height() / 540)
     if bold:
         name = name + "_bold"
     if name not in _FONT_PATHS:

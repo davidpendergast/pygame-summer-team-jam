@@ -24,8 +24,9 @@ class SoundManager:
         'kill': 'assets/sounds/kill',
         'accept': 'assets/sounds/accept',
         'blip': 'assets/sounds/blip',
+        'blip2': 'assets/sounds/blip2'
     }
-    PRIORITIES = ['accept', 'death', 'jump', 'kill', 'blip']
+    PRIORITIES = ['accept', 'death', 'jump', 'kill', 'blip2', 'blip']
 
     LOADED_SOUNDS = {}
 
@@ -68,6 +69,7 @@ class SoundManager:
 
     @classmethod
     def play(cls, sound_id):
+        # print("INFO: trying to play: {}".format(sound_id))
         if not config.Sound.enabled:
             return False
 
@@ -77,14 +79,17 @@ class SoundManager:
 
         if sound_id is None or sound_id not in cls.LOADED_SOUNDS or len(cls.LOADED_SOUNDS[sound_id]) == 0:
             return False
+
         if cls.CHANNEL.get_busy():
             if cls.should_interrupt(sound_id, cls.CURRENT_SOUND_ID):
                 cls.CHANNEL.stop()
             else:
                 return False
+
         sound_to_play = random.choice(cls.LOADED_SOUNDS[sound_id])
         sound_to_play.set_volume(volume)
         cls.CHANNEL.play(sound_to_play, loops=0)
+        # print("INFO: played {}".format(sound_id))
         return True
 
     @classmethod

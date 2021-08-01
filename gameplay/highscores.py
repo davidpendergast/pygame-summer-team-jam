@@ -17,10 +17,6 @@ def get_best():
     return _BEST_SCORE
 
 
-if __name__ == "__main__":
-    print(pygame.__dict__)
-
-
 def save_score():
     path = get_path_to_score()
     try:

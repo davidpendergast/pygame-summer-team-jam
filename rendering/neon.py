@@ -170,3 +170,4 @@ if __name__ == "__main__":
         if t % 60 == 59:
             pygame.display.set_caption("FPS: {:.1f}".format(clock.get_fps()))
         clock.tick(60)
+

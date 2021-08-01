@@ -7,6 +7,7 @@ import util.profiling as profiling
 import util.fonts as fonts
 from sound_manager.SoundManager import SoundManager
 import rendering.levelbuilder3d as levelbuilder3d
+import gameplay.highscores as highscores
 
 
 TARGET_FPS = config.Display.fps if not config.Debug.fps_test else -1
@@ -209,6 +210,7 @@ def _main():
     SoundManager.init()
     levelbuilder3d.load_player_art()
     create_or_recreate_window()
+    highscores.load_score()
 
     loop = GameLoop()
     loop.start()

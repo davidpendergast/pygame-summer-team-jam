@@ -56,7 +56,7 @@ class GameplayMode(main.GameMode):
         if self.player.is_dead():
             score = self.player.get_score()
             highscores.add_new_score(score)
-            self.loop.set_mode(RetryMenu(self.loop, score, self))
+            self.loop.set_mode(RetryMenu(self.loop, score, self.player.get_death_message(), self))
 
     def handle_events(self, events):
         for e in events:
@@ -210,7 +210,7 @@ class PauseMenu(main.GameMode):
 
 class RetryMenu(main.GameMode):
 
-    def __init__(self, loop, score, gameplay_mode: GameplayMode):
+    def __init__(self, loop, score, death_message, gameplay_mode: GameplayMode):
         super().__init__(loop)
         self.score = score
         self.best_score = highscores.get_best()
@@ -224,6 +224,8 @@ class RetryMenu(main.GameMode):
         self.title_font = fonts.get_font(config.FontSize.title)
         self.option_font = fonts.get_font(config.FontSize.option)
         self.info_font = fonts.get_font(config.FontSize.info)
+
+        self.death_message = death_message
 
         self.pause_timer = 0  # how long we've been paused
 
@@ -270,12 +272,17 @@ class RetryMenu(main.GameMode):
         self.gameplay_mode.draw_to_screen(screen, extra_darkness_factor=current_darkness, show_score=False)
 
         screen_size = screen.get_size()
-        title_surface = self.title_font.render('GAME OVER', True, neon.WHITE)
 
+        title_surface = self.title_font.render('GAME OVER', True, neon.WHITE)
         title_size = title_surface.get_size()
         title_y = screen_size[1] // 3 - title_size[1] // 2
         screen.blit(title_surface, dest=(screen_size[0] // 2 - title_size[0] // 2, title_y))
-        cur_y = title_y + title_size[1]
+        cur_y = title_y + int(title_size[1] * 0.9)
+
+        death_msg_surface = self.info_font.render(self.death_message.upper(), True, neon.WHITE)
+        death_msg_size = death_msg_surface.get_size()
+        screen.blit(death_msg_surface, dest=(screen_size[0] // 2 - death_msg_size[0] // 2, cur_y))
+        cur_y += int(death_msg_size[1] * 2)
 
         subtitle_surface1 = self.info_font.render("SCORE: {}".format(self.score), True, neon.WHITE)
         subtitle_surface1_size = subtitle_surface1.get_size()
@@ -285,7 +292,7 @@ class RetryMenu(main.GameMode):
         subtitle_surface2 = self.info_font.render("BEST: {}".format(self.best_score), True, neon.WHITE)
         subtitle_surface2_size = subtitle_surface2.get_size()
         screen.blit(subtitle_surface2, dest=(screen_size[0] // 2 - subtitle_surface2_size[0] // 2, cur_y))
-        cur_y += subtitle_surface2_size[1]
+        cur_y += int(subtitle_surface2_size[1] * 2)
 
         option_y = max(screen_size[1] // 2, cur_y)
         for i in range(len(self.options)):

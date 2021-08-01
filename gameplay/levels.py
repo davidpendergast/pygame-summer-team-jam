@@ -31,6 +31,9 @@ class Obstacle:
         # will be a List[Line3D] if present
         self._cached_3d_model = None
 
+    def get_death_message(self):
+        return "avoid obstacles!"
+
     def get_color(self):
         return self.color
 
@@ -118,6 +121,9 @@ class Spikes(Obstacle):
     def __init__(self, lane, z, length):
         super().__init__(lane, z, length, neon.RED, True, False)
 
+    def get_death_message(self):
+        return "jump over spikes!"
+
     def generate_3d_model_at_origin(self) -> List[Line3D]:
         height = 0.2
         pts = [
@@ -137,6 +143,9 @@ class Enemy(Obstacle):
 
     def __init__(self, lane, z, length):
         super().__init__(lane, z, length, neon.LIME, False, True)
+
+    def get_death_message(self):
+        return "slide through enemies!"
 
     def should_squeeze(self):
         return False
@@ -159,6 +168,9 @@ class Wall(Obstacle):
 
     def __init__(self, lane, z, length):
         super().__init__(lane, z, length, neon.PURPLE, False, False)
+
+    def get_death_message(self):
+        return "avoid walls!"
 
     def generate_3d_model_at_origin(self) -> List[Line3D]:
         height = 0.5

@@ -22,6 +22,7 @@ class Player:
 
         self._dead_since = 0  # time of death, in seconds since epoch
         self._last_mode_before_death = None
+        self._obstacle_that_killed_me = None
 
     def set_mode(self, mode):
         if mode in self.modes and mode != self.current_mode:
@@ -54,6 +55,13 @@ class Player:
 
     def get_last_mode_before_death(self):
         return self._last_mode_before_death
+
+    def get_death_message(self):
+        if self._obstacle_that_killed_me is not None:
+            return self._obstacle_that_killed_me.get_death_message()
+        else:
+            # should never be seen
+            return "player was killed by the guardians"
 
     def move_left(self):
         if not self.is_dead():
@@ -149,6 +157,7 @@ class Player:
                 if obs.handle_potential_collision(self):
                     self.set_mode('dead')
                     SoundManager.play('death')
+                    self._obstacle_that_killed_me = obs
                     return
 
     def draw(self, display):

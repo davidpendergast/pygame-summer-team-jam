@@ -1,9 +1,9 @@
 from typing import List
-from pygame import Vector3, Vector2, Color
+from pygame import Vector3, Color
 from rendering.threedee import Line3D
 import rendering.neon as neon
 from sound_manager.SoundManager import SoundManager
-import math
+import time
 
 
 class Obstacle:
@@ -24,6 +24,7 @@ class Obstacle:
         self._can_run_through = can_run_through
 
         self._is_dead = False
+        self._dead_since = 0  # time of death, in seconds (since the the epoch)
 
         # used to avoid recreating the 3D model every frame
         # will be a List[Line3D] if present
@@ -63,15 +64,22 @@ class Obstacle:
             return False
 
     def _handle_death(self):
-        self._is_dead = True
-        SoundManager.play('kill')
-        # TODO make graphics explode
+        if not self._is_dead:
+            self._is_dead = True
+            SoundManager.play('kill')
+            self._dead_since = time.time()
 
     def can_jump_over(self):
         return self._can_jump
 
     def can_run_through(self):
         return self._can_run_through
+
+    def get_time_dead(self, cur_time):
+        if self._is_dead:
+            return cur_time - self._dead_since
+        else:
+            return -1
 
     def get_jump_clearance_height(self):
         return 0.1
@@ -87,6 +95,7 @@ class Obstacle:
         """
         if self._cached_3d_model is None:
             self._cached_3d_model = self.generate_3d_model_at_origin()
+
         return self._cached_3d_model
 
     def generate_3d_model_at_origin(self) -> List[Line3D]:

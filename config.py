@@ -204,7 +204,7 @@ def save_configs_to_disk():
             path.touch()
         as_json_dict = _get_configs_as_json_dict()
         with open(path, "w") as f:
-            json.dump(as_json_dict, f, indent="")
+            json.dump(as_json_dict, f, indent="  ")
         print("INFO: saved configs to: {}".format(path))
     except Exception:
         print("ERROR: failed to save configs to: {}".format(path))

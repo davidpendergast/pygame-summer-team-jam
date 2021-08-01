@@ -8,6 +8,7 @@ import util.fonts as fonts
 from sound_manager.SoundManager import SoundManager
 import rendering.levelbuilder3d as levelbuilder3d
 import gameplay.highscores as highscores
+import util.utility_functions as utils
 
 
 TARGET_FPS = config.Display.fps if not config.Debug.fps_test else -1
@@ -105,7 +106,7 @@ class MainMenuMode(GameMode):
         self.bg_renderer = neon.NeonRenderer()
 
     def on_mode_start(self):
-        SoundManager.play_song("menu_theme", fadein_ms=3000)
+        SoundManager.play_song("menu_theme", fadein_ms=0)
 
     def start_pressed(self):
         import gameplay.gamestuff  # shh don't tell pylint about this
@@ -196,7 +197,7 @@ def create_or_recreate_window():
 
     pygame.display.set_mode(size, pygame.SCALED | pygame.RESIZABLE)
     pygame.display.set_caption(config.Display.title)
-    # TODO set icon
+    pygame.display.set_icon(pygame.image.load(utils.resource_path("assets/icon/icon.png")))
 
 
 def _main():

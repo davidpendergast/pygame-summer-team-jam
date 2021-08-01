@@ -79,12 +79,12 @@ _default_configs = {
 
     "Music": {
         "enabled": True,
-        "volume": 0.4
+        "volume": 0.5
         },
 
     "Sound": {
         "enabled": True,
-        "volume": 0.4
+        "volume": 0.5
         },
 
     "Debug": {
@@ -105,15 +105,15 @@ _default_configs = {
         "Menu": {
             "up": [pygame.K_w, pygame.K_UP],
             "down": [pygame.K_s, pygame.K_DOWN],
-            "right" : [pygame.K_d, pygame.K_RIGHT],
-            "left" : [pygame.K_a, pygame.K_LEFT],
+            "right": [pygame.K_d, pygame.K_RIGHT],
+            "left": [pygame.K_a, pygame.K_LEFT],
             "accept": [pygame.K_RETURN, pygame.K_SPACE],
             "cancel": [pygame.K_ESCAPE]
             },
 
         "Toogle": {
             "neon": [pygame.K_n],
-            "profiler": [pygame.K_F1]
+            "profiler": []
             }
         }
     }

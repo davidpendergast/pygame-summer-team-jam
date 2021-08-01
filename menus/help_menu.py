@@ -21,7 +21,6 @@ class HelpMenuMode(GameMode):
         self.options = [
             ("goal", None),
             ("controls", None),
-            ("sounds", None),
             ("back", None)
         ]
 
@@ -95,22 +94,30 @@ class HelpMenuMode(GameMode):
                                          title_y))
 
         option_y = max(screen_size[1] // 2, title_y + title_size[1])
-        msg = ''
+        msgs = []
         for i in range(len(self.options)):
             option_text = self.options[i][0]
             is_selected = i == self.selected_option_idx
             color = neon.WHITE if not is_selected else neon.RED
             if is_selected:
                 if i == 0:
-                    msg = 'objectives of the game'
+                    msgs = ['jump over the red spikes',
+                            'duck to kick the green enemies',
+                            'evade the purple walls',
+                            'run as far as you can!']
                 elif i == 1:
-                    msg = 'keyboard controls'
+                    msgs = ['W, arrow UP or SPACE to jump',
+                            'A or arrow LEFT to move left',
+                            'S or arrow DOWN to duck',
+                            'D or arrow RIGHT to move right',
+                            'R to reset the level',
+                            'ESC to pause the game']
                 elif i == 2:
-                    msg = 'how to turn sounds on or off'
-                elif i == 3:
-                    msg = 'Press ESCAPE to Go Back'
+                    msgs = ['press ESCAPE to go back']
+
             option_surface = self.option_font.render(option_text.upper(), False, color)
             option_size = option_surface.get_size()
             screen.blit(option_surface, dest=((screen_size[0] // (len(self.options) + 1)) * (i + 1) - option_size[0] // 2, option_y))
-            msg_surf = self.info_font.render(msg.upper(), False, neon.WHITE)
-            screen.blit(msg_surf, msg_surf.get_rect(center=(screen_size[0] // 2, screen_size[1] * 2 / 3)))
+            for index, msg in enumerate(msgs):
+                msg_surf = self.info_font.render(msg, False, neon.WHITE)
+                screen.blit(msg_surf, msg_surf.get_rect(center=(screen_size[0] // 2, screen_size[1] * 2 / 3 + msg_surf.get_size()[1] * index)))

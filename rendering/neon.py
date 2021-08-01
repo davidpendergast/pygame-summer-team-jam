@@ -1,4 +1,4 @@
-from typing import List, Iterable, Tuple
+from typing import List, Iterable
 import pygame
 import cv2
 import numpy

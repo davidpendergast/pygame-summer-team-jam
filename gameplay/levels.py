@@ -388,7 +388,3 @@ class InfiniteGeneratingLevel(Level):
         self._currently_loaded_cell_range[1] = max(new_range[1], old_range[1])
 
         return [self._obstacle_grid[(n, i)] for i in range(cell_start, cell_end) if (n, i) in self._obstacle_grid]
-
-
-
-

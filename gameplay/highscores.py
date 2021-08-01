@@ -1,6 +1,5 @@
 import pathlib
 import traceback
-import pygame
 import rendering.neon as neon
 
 _BEST_SCORE = 0
@@ -35,7 +34,7 @@ def load_score():
     try:
         if path.exists():
             with open(path, "r") as f:
-                lines = [l for l in f.readlines()]
+                lines = [line for line in f.readlines()]
                 num = int(lines[1][:-2])
                 if num % neon.key == 0:
                     global _BEST_SCORE

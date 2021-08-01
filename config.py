@@ -11,6 +11,7 @@ class Display:
     title = "TEMPEST RUN"
     camera_bob = True
     use_player_art = True
+    depth_shade = False
 
 
 class FontSize:
@@ -33,7 +34,7 @@ class Sound:
 
 class Debug:
     use_neon = True
-    testmode = False
+    fps_test = False
 
 
 class KeyBinds:
@@ -64,7 +65,8 @@ _default_configs = {
         "height": 540,
         "title": "TEMPEST RUN",
         "camera_bob": True,
-        "use_player_art": True
+        "use_player_art": True,
+        "depth_shade": False
         },
 
     "FontSize": {
@@ -86,7 +88,7 @@ _default_configs = {
 
     "Debug": {
         "use_neon": True,
-        "testmode": False
+        "fps_test": False
         },
 
     "KeyBinds": {
@@ -122,6 +124,7 @@ def _apply_configs_from_json(configuration):
     Display.title = configuration["Display"]["title"]
     Display.camera_bob = configuration["Display"]["camera_bob"]
     Display.use_player_art = configuration["Display"]["use_player_art"]
+    Display.depth_shade = configuration["Display"]["depth_shade"]
     FontSize.title = configuration["FontSize"]["title"]
     FontSize.option = configuration["FontSize"]["option"]
     FontSize.info = configuration["FontSize"]["info"]
@@ -131,7 +134,7 @@ def _apply_configs_from_json(configuration):
     Sound.enabled = configuration["Sound"]["enabled"]
     Sound.volume = configuration["Sound"]["volume"]
     Debug.use_neon = configuration["Debug"]["use_neon"]
-    Debug.testmode = configuration["Debug"]["testmode"]
+    Debug.fps_test = configuration["Debug"]["fps_test"]
 
     KeyBinds.Game.jump = configuration["KeyBinds"]["Game"]["jump"]
     KeyBinds.Game.left = configuration["KeyBinds"]["Game"]["left"]
@@ -159,6 +162,7 @@ def _get_configs_as_json_dict():
     configuration["Display"]["title"] = Display.title
     configuration["Display"]["camera_bob"] = Display.camera_bob
     configuration["Display"]["use_player_art"] = Display.use_player_art
+    configuration["Display"]["depth_shade"] = Display.depth_shade
     configuration["FontSize"]["title"] = FontSize.title
     configuration["FontSize"]["option"] = FontSize.option
     configuration["FontSize"]["info"] = FontSize.info
@@ -168,7 +172,7 @@ def _get_configs_as_json_dict():
     configuration["Sound"]["enabled"] = Sound.enabled
     configuration["Sound"]["volume"] = Sound.volume
     configuration["Debug"]["use_neon"] = Debug.use_neon
-    configuration["Debug"]["testmode"] = Debug.testmode
+    configuration["Debug"]["fps_test"] = Debug.fps_test
 
     configuration["KeyBinds"]["Game"]["jump"] = KeyBinds.Game.jump
     configuration["KeyBinds"]["Game"]["left"] = KeyBinds.Game.left
@@ -185,9 +189,13 @@ def _get_configs_as_json_dict():
     return configuration
 
 
+def get_config_path():
+    return pathlib.Path("config.json")
+
+
 def load_configs_from_disk():
     _apply_configs_from_json(_default_configs)
-    path = pathlib.Path("config.json")
+    path = get_config_path()
     try:
         if path.exists():
             with open(path, "r") as f:
@@ -210,3 +218,5 @@ def save_configs_to_disk():
     except Exception:
         print("ERROR: failed to save configs to: {}".format(path))
         traceback.print_exc()
+
+

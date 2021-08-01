@@ -44,7 +44,7 @@ class SettingsMenuMode(main.GameMode):
         config.save_configs_to_disk()
 
         if old_resolution != new_resolution:
-            pygame.display.set_mode((config.Display.width, config.Display.height), pygame.SCALED | pygame.RESIZABLE)
+            main.create_or_recreate_window()
 
         self.loop.set_mode(main.MainMenuMode(self.loop))
 

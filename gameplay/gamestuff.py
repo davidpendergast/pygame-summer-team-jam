@@ -227,7 +227,6 @@ class RetryMenu(main.GameMode):
         self.pause_timer = 0  # how long we've been paused
 
     def on_mode_start(self):
-        SoundManager.play('blip2')
         SoundManager.set_song_volume_multiplier(0.5)
 
     def on_mode_end(self):

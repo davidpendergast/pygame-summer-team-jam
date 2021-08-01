@@ -18,7 +18,7 @@ class SettingsMenuMode(main.GameMode):
             ["sound", config.Sound.volume, [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], 5],
             ["fps", config.Display.fps, [30, 40, 50, 60, 70, 80, 90, 100, 110, 120], 3],
             ["display", (config.Display.width, config.Display.height), [(600, 300), (960, 540), (1390, 810), (1820, 1080)], 0],
-            ["exit", lambda: self.exit_pressed()]
+            ["save & exit", lambda: self.exit_pressed()]
         ]
 
         self.title_font = fonts.get_font(config.FontSize.title)
@@ -33,7 +33,7 @@ class SettingsMenuMode(main.GameMode):
         SoundManager.update_song_volume()
 
     def exit_pressed(self):
-        SoundManager.play('blip2')
+        SoundManager.play("accept")
         self._update_volumes()
         config.Display.fps = self.options[2][1]
 
@@ -58,7 +58,7 @@ class SettingsMenuMode(main.GameMode):
                     SoundManager.play("blip")
                     self.selected_option_idx = (self.selected_option_idx + 1) % len(self.options)
                 elif e.key in keybinds.MENU_ACCEPT:
-                    SoundManager.play("accept")
+                    # so sound bc there's nothing to accept
                     if self.selected_option_idx == len(self.options) - 1:
                         self.options[self.selected_option_idx][1]()
                 elif e.key in keybinds.MENU_RIGHT:
@@ -80,7 +80,6 @@ class SettingsMenuMode(main.GameMode):
                             self.options[self.selected_option_idx][2][self.options[self.selected_option_idx][2].index(self.options[self.selected_option_idx][1]) - 1]
                         self._update_volumes()
                 elif e.key in keybinds.MENU_CANCEL:
-                    SoundManager.play("blip2")
                     self.exit_pressed()
                     return
 

@@ -1,6 +1,7 @@
 import pygame
 import keybinds
 from sound_manager.SoundManager import SoundManager
+import time
 
 import util.fonts as fonts
 
@@ -16,10 +17,16 @@ class Player:
         self.dy = 0
         self.modes = ['run', 'jump', 'slide', 'dead']
         self.current_mode = self.modes[0]
-        self.collided = False
+
+        self._dead_since = 0  # time of death, in seconds since epoch
+        self._last_mode_before_death = None
 
     def set_mode(self, mode):
-        if mode in self.modes:
+        if mode in self.modes and mode != self.current_mode:
+            if mode == "dead":
+                self._dead_since = time.time()
+                self._last_mode_before_death = self.current_mode
+
             self.current_mode = mode
 
     def is_sliding(self):
@@ -36,6 +43,15 @@ class Player:
 
     def get_mode(self):
         return self.current_mode
+
+    def get_time_dead(self):
+        if self.is_dead():
+            return time.time() - self._dead_since
+        else:
+            return -1
+
+    def get_last_mode_before_death(self):
+        return self._last_mode_before_death
 
     def move_left(self):
         if not self.is_dead():
@@ -140,6 +156,3 @@ class Player:
         fonts.Text(display, 'Z : ' + str(int(self.z)), 50, 250, 25).draw()
         fonts.Text(display, 'LANE : ' + str(self.lane), 50, 300, 25).draw()
         fonts.Text(display, 'MODE : ' + self.current_mode, 550, 50, 25).draw()
-        # print(self.collided)
-        if self.collided:
-            fonts.Text(display, 'COLLIDED', 550, 100, 25).draw()

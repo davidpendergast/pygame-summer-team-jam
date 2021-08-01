@@ -56,7 +56,7 @@ EXPLOSION_SRC_POINT = Vector3(0, 0, 0)
 def build_obstacle(obs, level) -> List[threedee.Line3D]:
     model = obs.get_model()
 
-    time_dead = obs.get_time_dead(time.time())
+    time_dead = obs.get_time_dead()
     if time_dead > 1:
         return []  # it's gone
     elif time_dead <= 0:
@@ -79,7 +79,7 @@ def blow_up(lines: List[threedee.Line3D], from_pt: Vector3, amount, rotation_spe
     for l in lines:
         c = l.center()
         direction = c - from_pt
-        if direction.length() == 0:
+        if direction.length() < 0.001 or amount == 0:
             res.append(l)
         else:
             direction.scale_to_length(amount)
@@ -195,12 +195,14 @@ def load_player_art(w=0.8, h=0.5):
 
 def get_player_shape_at_origin(player) -> List[threedee.Line3D]:
 
+    player_mode = player.get_mode() if not player.is_dead() else player.get_last_mode_before_death()
+
     art_to_use = None
-    if player.is_jumping():
+    if player_mode == 'jump':
         art_to_use = "jump"
-    elif player.is_sliding() or player.is_dead():
+    elif player_mode == 'slide':
         art_to_use = "slide"
-    elif player.is_running():
+    else:
         art_to_use = "run"
 
     dist_from_ground = 0.3 * player.y / player.max_jump_height()
@@ -229,6 +231,15 @@ def get_player_shape_at_origin(player) -> List[threedee.Line3D]:
 
 def get_player_shape(player, level) -> List[threedee.Line3D]:
     shape_2d = get_player_shape_at_origin(player)
+    if player.is_dead():
+        death_dur = player.get_time_dead()
+        if death_dur > EXPLOSION_DURATION:
+            return []
+        elif death_dur > 0:
+            shape_2d = blow_up(shape_2d,
+                               EXPLOSION_SRC_POINT,
+                               EXPLOSION_DIST * (death_dur / EXPLOSION_DURATION),
+                               2 * EXPLOSION_ROT_SPEED)
     return align_shape_to_level_surface(shape_2d, player.z, player.z, player.lane, level, squeeze=False)
 
 

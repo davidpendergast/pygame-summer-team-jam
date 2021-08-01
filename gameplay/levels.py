@@ -75,9 +75,9 @@ class Obstacle:
     def can_run_through(self):
         return self._can_run_through
 
-    def get_time_dead(self, cur_time):
+    def get_time_dead(self):
         if self._is_dead:
-            return cur_time - self._dead_since
+            return time.time() - self._dead_since
         else:
             return -1
 

@@ -166,12 +166,13 @@ class SoundManager:
     @classmethod
     def _play_song_immediately(cls, song_id, fadein_ms):
         try:
-            pygame.mixer.music.load(cls.SONG_PATHS[song_id])
+            pygame.mixer.music.load(utils.resource_path(cls.SONG_PATHS[song_id]))
             pygame.mixer.music.set_volume(cls.get_song_volume())
             pygame.mixer.music.play(loops=-1, fade_ms=fadein_ms)
             cls.CURRENT_SONG_ID = song_id
         except Exception:
             print("ERROR: failed to play song: {}".format(cls.SONG_PATHS[song_id]))
+            traceback.print_exc()
             cls.CURRENT_SONG_ID = None
             try:
                 # if there's another song playing, try to stop it

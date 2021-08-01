@@ -113,7 +113,7 @@ _default_configs = {
 
         "Toogle": {
             "neon": [pygame.K_n],
-            "profiler": [pygame.K_F1]
+            "profiler": []
             }
         }
     }

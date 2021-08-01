@@ -27,6 +27,24 @@ class Line3D:
                       color=self.color if new_color is None else new_color,
                       width=self.width if new_width is None else new_width)
 
+    def center(self):
+        return (self.p1 + self.p2) / 2
+
+    def rotate_on_z_axis(self, angle) -> 'Line3D':
+        center = self.center()
+
+        v1 = self.p1 - center
+        v1_xy = Vector2(v1.x, v1.y)
+        v1_xy.rotate_ip(angle)
+
+        v2 = self.p2 - center
+        v2_xy = Vector2(v2.x, v2.y)
+        v2_xy.rotate_ip(angle)
+
+        return Line3D(Vector3(v1_xy.x, v1_xy.y, v1.z) + center,
+                      Vector3(v2_xy.x, v2_xy.y, v2.z) + center,
+                      color=self.color, width=self.width)
+
     @staticmethod
     def make_lines_from_list(list_of_vec3s: List[Vector3], closed=False, color=neon.WHITE, width=1) -> List['Line3D']:
         res = []

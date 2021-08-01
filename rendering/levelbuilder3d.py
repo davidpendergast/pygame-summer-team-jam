@@ -4,6 +4,7 @@ import math
 import os
 import traceback
 import json
+import time
 import config
 import rendering.threedee as threedee
 import rendering.neon as neon
@@ -46,13 +47,50 @@ def get_rotation_to_make_lane_at_bottom(z, lane, level):
     return res
 
 
+EXPLOSION_DURATION = 1  # second
+EXPLOSION_DIST = 0.75      # units
+EXPLOSION_ROT_SPEED = 20
+EXPLOSION_SRC_POINT = Vector3(0, 0, 0)
+
+
 def build_obstacle(obs, level) -> List[threedee.Line3D]:
-    return align_shape_to_level_surface(obs.get_model(),
+    model = obs.get_model()
+
+    time_dead = obs.get_time_dead()
+    if time_dead > 1:
+        return []  # it's gone
+    elif time_dead <= 0:
+        pass  # just use normal model
+    elif time_dead > 0:
+        model = blow_up(model,
+                        EXPLOSION_SRC_POINT,
+                        EXPLOSION_DIST * (time_dead / EXPLOSION_DURATION),
+                        rotation_speed=EXPLOSION_ROT_SPEED)
+    return align_shape_to_level_surface(model,
                                         obs.z,
                                         obs.z + obs.length,
                                         obs.lane,
                                         level,
                                         obs.should_squeeze())
+
+
+def blow_up(lines: List[threedee.Line3D], from_pt: Vector3, amount, rotation_speed=30, axis=(0, 1)) -> List[threedee.Line3D]:
+    res = []
+    for l in lines:
+        c = l.center()
+        direction = c - from_pt
+        if direction.length() < 0.001 or amount == 0:
+            res.append(l)
+        else:
+            direction.scale_to_length(amount)
+            dx = direction.x if 0 in axis else 0
+            dy = direction.y if 1 in axis else 0
+            dz = direction.z if 2 in axis else 0
+            rot = rotation_speed * amount
+            if direction.x < 0:
+                rot = -rot
+            res.append(l.rotate_on_z_axis(rot).shift(dx, dy, dz))
+    return res
 
 
 def build_rect(z_start, length, level, lane_n, hover_height, color, width, with_x=False) -> List[threedee.Line3D]:
@@ -157,12 +195,14 @@ def load_player_art(w=0.8, h=0.5):
 
 def get_player_shape_at_origin(player) -> List[threedee.Line3D]:
 
+    player_mode = player.get_mode() if not player.is_dead() else player.get_last_mode_before_death()
+
     art_to_use = None
-    if player.is_jumping():
+    if player_mode == 'jump':
         art_to_use = "jump"
-    elif player.is_sliding() or player.is_dead():
+    elif player_mode == 'slide':
         art_to_use = "slide"
-    elif player.is_running():
+    else:
         art_to_use = "run"
 
     dist_from_ground = 0.3 * player.y / player.max_jump_height()
@@ -191,6 +231,15 @@ def get_player_shape_at_origin(player) -> List[threedee.Line3D]:
 
 def get_player_shape(player, level) -> List[threedee.Line3D]:
     shape_2d = get_player_shape_at_origin(player)
+    if player.is_dead():
+        death_dur = player.get_time_dead()
+        if death_dur > EXPLOSION_DURATION:
+            return []
+        elif death_dur > 0:
+            shape_2d = blow_up(shape_2d,
+                               EXPLOSION_SRC_POINT,
+                               EXPLOSION_DIST * (death_dur / EXPLOSION_DURATION),
+                               2 * EXPLOSION_ROT_SPEED)
     return align_shape_to_level_surface(shape_2d, player.z, player.z, player.lane, level, squeeze=False)
 
 

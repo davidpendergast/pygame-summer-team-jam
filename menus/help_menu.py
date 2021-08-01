@@ -79,6 +79,12 @@ class HelpMenuMode(GameMode):
                     SoundManager.play('blip2')
                     self.exit_pressed()
                     return
+                elif e.key in keybinds.MENU_ACCEPT:
+                    if self.selected_option_idx == 2:
+                        SoundManager.play('accept')
+                        self.exit_pressed()
+                    else:
+                        SoundManager.play("blip2")
 
     def draw_to_screen(self, screen):
         screen.fill((0, 0, 0))
@@ -115,9 +121,9 @@ class HelpMenuMode(GameMode):
                 elif i == 2:
                     msgs = ['press ESCAPE to go back']
 
-            option_surface = self.option_font.render(option_text.upper(), False, color)
+            option_surface = self.option_font.render(option_text.upper(), True, color)
             option_size = option_surface.get_size()
             screen.blit(option_surface, dest=((screen_size[0] // (len(self.options) + 1)) * (i + 1) - option_size[0] // 2, option_y))
             for index, msg in enumerate(msgs):
-                msg_surf = self.info_font.render(msg, False, neon.WHITE)
+                msg_surf = self.info_font.render(msg, True, neon.WHITE)
                 screen.blit(msg_surf, msg_surf.get_rect(center=(screen_size[0] // 2, screen_size[1] * 2 / 3 + msg_surf.get_size()[1] * index)))

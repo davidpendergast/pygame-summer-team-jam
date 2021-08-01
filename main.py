@@ -8,6 +8,7 @@ import util.fonts as fonts
 from sound_manager.SoundManager import SoundManager
 import rendering.levelbuilder3d as levelbuilder3d
 import gameplay.highscores as highscores
+import util.utility_functions as utils
 
 
 TARGET_FPS = config.Display.fps if not config.Debug.fps_test else -1
@@ -196,7 +197,7 @@ def create_or_recreate_window():
 
     pygame.display.set_mode(size, pygame.SCALED | pygame.RESIZABLE)
     pygame.display.set_caption(config.Display.title)
-    # TODO set icon
+    pygame.display.set_icon(pygame.image.load(utils.resource_path("assets/icon/icon.png")))
 
 
 def _main():
